@@ -88,24 +88,24 @@ export function AddFeedModal({
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add Feed</h2>
+      <div className="bg-white rounded shadow-xl w-full max-w-md border border-gray-300">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300 bg-[#f5f5f5]">
+          <h2 className="text-[15px] font-bold text-gray-800">Add a subscription</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            className="p-1 hover:bg-gray-200 rounded"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-4 w-4 text-gray-500" />
           </button>
         </div>
 
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-300">
           <button
             onClick={() => setTab('url')}
-            className={`flex-1 px-4 py-2 text-sm font-medium ${
+            className={`flex-1 px-4 py-2 text-[13px] font-medium ${
               tab === 'url'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                ? 'text-[#15c] border-b-2 border-[#c74a35] bg-white'
+                : 'text-gray-600 hover:text-gray-800 bg-[#f5f5f5]'
             }`}
           >
             <Rss className="h-4 w-4 inline-block mr-2" />
@@ -113,10 +113,10 @@ export function AddFeedModal({
           </button>
           <button
             onClick={() => setTab('opml')}
-            className={`flex-1 px-4 py-2 text-sm font-medium ${
+            className={`flex-1 px-4 py-2 text-[13px] font-medium ${
               tab === 'opml'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                ? 'text-[#15c] border-b-2 border-[#c74a35] bg-white'
+                : 'text-gray-600 hover:text-gray-800 bg-[#f5f5f5]'
             }`}
           >
             <FileUp className="h-4 w-4 inline-block mr-2" />
@@ -126,7 +126,7 @@ export function AddFeedModal({
 
         <div className="p-4">
           {error && (
-            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded text-[13px]">
               {error}
             </div>
           )}
@@ -136,7 +136,7 @@ export function AddFeedModal({
               <div>
                 <label
                   htmlFor="feedUrl"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  className="block text-[13px] font-medium text-gray-700 mb-1"
                 >
                   Feed URL
                 </label>
@@ -146,10 +146,10 @@ export function AddFeedModal({
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com/feed.xml"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded bg-white text-gray-900 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#15c] focus:border-[#15c]"
                   autoFocus
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-[11px] text-gray-500">
                   Enter an RSS or Atom feed URL
                 </p>
               </div>
@@ -157,15 +157,15 @@ export function AddFeedModal({
               <div>
                 <label
                   htmlFor="folder"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  className="block text-[13px] font-medium text-gray-700 mb-1"
                 >
-                  Folder (optional)
+                  Add to folder (optional)
                 </label>
                 <select
                   id="folder"
                   value={folderId}
                   onChange={(e) => setFolderId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded bg-white text-gray-900 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#15c] focus:border-[#15c]"
                 >
                   <option value="">No folder</option>
                   {folders.map((folder) => (
@@ -176,18 +176,18 @@ export function AddFeedModal({
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="px-4 py-1.5 text-[13px] text-gray-700 bg-white hover:bg-gray-100 rounded border border-gray-400"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-1.5 bg-[#c74a35] hover:bg-[#b5422f] text-white rounded text-[13px] font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -195,7 +195,7 @@ export function AddFeedModal({
                       Adding...
                     </>
                   ) : (
-                    'Add Feed'
+                    'Subscribe'
                   )}
                 </button>
               </div>
@@ -203,16 +203,16 @@ export function AddFeedModal({
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-[13px] font-medium text-gray-700 mb-1">
                   OPML File
                 </label>
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-gray-300 rounded p-6 text-center bg-[#fafafa]">
                   {opmlFile ? (
                     <div>
-                      <p className="text-sm text-gray-900 dark:text-white">{opmlFile.name}</p>
+                      <p className="text-[13px] text-gray-900">{opmlFile.name}</p>
                       <button
                         onClick={() => setOpmlFile(null)}
-                        className="text-sm text-red-600 hover:text-red-700 mt-2"
+                        className="text-[12px] text-red-600 hover:underline mt-2"
                       >
                         Remove
                       </button>
@@ -220,10 +220,10 @@ export function AddFeedModal({
                   ) : (
                     <>
                       <FileUp className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      <p className="text-[13px] text-gray-500 mb-2">
                         Drop your OPML file here or
                       </p>
-                      <label className="cursor-pointer text-sm text-blue-600 hover:text-blue-700">
+                      <label className="cursor-pointer text-[13px] text-[#15c] hover:underline">
                         browse
                         <input
                           type="file"
@@ -235,23 +235,23 @@ export function AddFeedModal({
                     </>
                   )}
                 </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-[11px] text-gray-500">
                   Import feeds from Google Reader, Feedly, or other RSS readers
                 </p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="px-4 py-1.5 text-[13px] text-gray-700 bg-white hover:bg-gray-100 rounded border border-gray-400"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleOpmlImport}
                   disabled={!opmlFile || importing}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-1.5 bg-[#c74a35] hover:bg-[#b5422f] text-white rounded text-[13px] font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {importing ? (
                     <>

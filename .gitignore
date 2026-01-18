@@ -32,3 +32,5 @@ credentials.json
 *.njsproj
 *.sln
 *.sw?
+
+supabase/.temp/

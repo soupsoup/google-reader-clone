@@ -1,20 +1,26 @@
+import { SplitPane } from 'react-split-pane';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { ArticleList } from '../articles/ArticleList';
 import { ArticleView } from '../articles/ArticleView';
+import { ArticlePane } from '../articles/ArticlePane';
 import { Header } from './Header';
 import { AddFeedModal } from '../feeds/AddFeedModal';
 import { useFeeds } from '../../hooks/useFeeds';
 import { useArticles } from '../../hooks/useArticles';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
-import type { ViewState, ArticleWithState } from '../../types';
+import { TopBottomResizablePane } from '../common/TopBottomResizablePane';
+import type { ViewState, ArticleWithState, Layout } from '../../types';
 
 export function AppLayout() {
   const [view, setView] = useState<ViewState>({ type: 'all', title: 'All Items' });
   const [selectedArticle, setSelectedArticle] = useState<ArticleWithState | null>(null);
+  const [showArticleAsModal, setShowArticleAsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddFeed, setShowAddFeed] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [layout, setLayout] = useState<Layout>('side-by-side');
+  const [fontSize, setFontSize] = useState(28);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { organizedFeeds, addFeed, isAddingFeed, refreshFeed } = useFeeds();
@@ -30,11 +36,14 @@ export function AppLayout() {
 
   const handleSelectArticle = useCallback((article: ArticleWithState) => {
     setSelectedArticle(article);
+    if (layout === 'modal') {
+      setShowArticleAsModal(true);
+    }
     // Mark as read when selected
     if (!article.is_read) {
       toggleRead({ articleId: article.id, isRead: true });
     }
-  }, [toggleRead]);
+  }, [layout, toggleRead]);
 
   const handleNextArticle = useCallback(() => {
     if (articles.length === 0) return;
@@ -77,6 +86,10 @@ export function AppLayout() {
     refetch();
   }, [view, refreshFeed, refetch]);
 
+  const handleCloseArticle = () => {
+    setShowArticleAsModal(false);
+  };
+
   useKeyboardShortcuts({
     onNextArticle: handleNextArticle,
     onPrevArticle: handlePrevArticle,
@@ -94,6 +107,7 @@ export function AppLayout() {
     onSearch: () => searchInputRef.current?.focus(),
     onRefresh: handleRefresh,
     onAddFeed: () => setShowAddFeed(true),
+    onCloseArticle: layout === 'modal' ? handleCloseArticle : undefined,
   });
 
   // Update selected article when articles change
@@ -102,43 +116,87 @@ export function AppLayout() {
       const updated = articles.find(a => a.id === selectedArticle.id);
       if (updated) {
         setSelectedArticle(updated);
+      } else {
+        // The article is no longer in the list, so close the view
+        setSelectedArticle(null);
+        setShowArticleAsModal(false);
       }
     }
   }, [articles, selectedArticle?.id]);
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-white">
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchInputRef={searchInputRef}
         onAddFeed={() => setShowAddFeed(true)}
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+        layout={layout}
+        onLayoutChange={setLayout}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
       />
 
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          organizedFeeds={organizedFeeds}
-          currentView={view}
-          onSelectView={setView}
-          onAddFeed={() => setShowAddFeed(true)}
-        />
+        <div className="flex-1 flex overflow-hidden">
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            organizedFeeds={organizedFeeds}
+            currentView={view}
+            onSelectView={setView}
+            onAddFeed={() => setShowAddFeed(true)}
+          />
 
-        <ArticleList
-          articles={articles}
-          selectedArticle={selectedArticle}
-          onSelectArticle={handleSelectArticle}
-          viewTitle={view.title}
-          onMarkAllRead={handleMarkAllRead}
-        />
+          <div className="flex-1 flex overflow-hidden"> {/* This div is the main content area, sibling to Sidebar */}
+            {layout === 'side-by-side' && (
+              <SplitPane split="vertical" minSize={200} defaultSize={400}>
+                <div> {/* ArticleList Container */}
+                  <ArticleList
+                    articles={articles}
+                    selectedArticle={selectedArticle}
+                    onSelectArticle={handleSelectArticle}
+                    viewTitle={view.title}
+                    onMarkAllRead={handleMarkAllRead}
+                  />
+                </div>
+                <div> {/* ArticlePane Container */}
+                  <ArticlePane article={selectedArticle} fontSize={fontSize} />
+                </div>
+              </SplitPane>
+            )}
 
+            {layout === 'top-and-bottom' && (
+              <TopBottomResizablePane
+                articles={articles}
+                selectedArticle={selectedArticle}
+                onSelectArticle={handleSelectArticle}
+                viewTitle={view.title}
+                onMarkAllRead={handleMarkAllRead}
+                articlePaneFontSize={fontSize}
+              />
+            )}
+
+            {layout === 'modal' && (
+              <ArticleList
+                articles={articles}
+                selectedArticle={selectedArticle}
+                onSelectArticle={handleSelectArticle}
+                viewTitle={view.title}
+                onMarkAllRead={handleMarkAllRead}
+              />
+            )}
+          </div>
+        </div>
+      
+      {layout === 'modal' && showArticleAsModal && (
         <ArticleView
           article={selectedArticle}
           onToggleStar={handleToggleStar}
           onToggleRead={handleToggleRead}
+          onClose={handleCloseArticle}
+          fontSize={fontSize}
         />
-      </div>
+      )}
 
       <AddFeedModal
         isOpen={showAddFeed}

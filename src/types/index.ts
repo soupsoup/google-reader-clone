@@ -85,3 +85,5 @@ export interface FolderWithFeeds extends Folder {
   unread_count: number;
   is_expanded: boolean;
 }
+
+export type Layout = 'modal' | 'side-by-side' | 'top-and-bottom';

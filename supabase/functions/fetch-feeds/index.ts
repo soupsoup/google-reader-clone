@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { DOMParser } from 'https://esm.sh/linkedom@0.16.8';
+import { XMLParser } from 'https://esm.sh/fast-xml-parser@4.3.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,30 +23,38 @@ interface ParsedFeed {
   items: FeedItem[];
 }
 
+function getText(val: unknown): string | null {
+  if (val === undefined || val === null) return null;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object' && val !== null && '#text' in val) return String((val as Record<string, unknown>)['#text']);
+  return String(val);
+}
+
 function parseRSS(xml: string, feedUrl: string): ParsedFeed {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, 'text/xml');
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_',
+  });
+  const doc = parser.parse(xml);
 
   // Try RSS 2.0 first
-  const channel = doc.querySelector('channel');
-  if (channel) {
-    const title = channel.querySelector('title')?.textContent || 'Untitled Feed';
-    const description = channel.querySelector('description')?.textContent || null;
-    const link = channel.querySelector('link')?.textContent || null;
+  if (doc.rss?.channel) {
+    const channel = doc.rss.channel;
+    const title = getText(channel.title) || 'Untitled Feed';
+    const description = getText(channel.description);
+    const link = getText(channel.link);
 
     const items: FeedItem[] = [];
-    const itemElements = channel.querySelectorAll('item');
+    const itemElements = Array.isArray(channel.item) ? channel.item : channel.item ? [channel.item] : [];
 
     for (const item of itemElements) {
-      const itemTitle = item.querySelector('title')?.textContent || 'Untitled';
-      const itemLink = item.querySelector('link')?.textContent || '';
-      const guid = item.querySelector('guid')?.textContent || itemLink || `${feedUrl}-${itemTitle}`;
-      const author = item.querySelector('author')?.textContent ||
-                     item.querySelector('dc\\:creator')?.textContent || null;
-      const content = item.querySelector('content\\:encoded')?.textContent ||
-                      item.querySelector('description')?.textContent || null;
-      const summary = item.querySelector('description')?.textContent || null;
-      const pubDate = item.querySelector('pubDate')?.textContent;
+      const itemTitle = getText(item.title) || 'Untitled';
+      const itemLink = getText(item.link) || '';
+      const guid = getText(item.guid) || itemLink || `${feedUrl}-${itemTitle}`;
+      const author = getText(item.author) || getText(item['dc:creator']);
+      const content = getText(item['content:encoded']) || getText(item.description);
+      const summary = getText(item.description);
+      const pubDate = getText(item.pubDate);
 
       items.push({
         guid,
@@ -63,27 +71,27 @@ function parseRSS(xml: string, feedUrl: string): ParsedFeed {
   }
 
   // Try Atom
-  const feed = doc.querySelector('feed');
-  if (feed) {
-    const title = feed.querySelector('title')?.textContent || 'Untitled Feed';
-    const subtitle = feed.querySelector('subtitle')?.textContent || null;
-    const linkEl = feed.querySelector('link[rel="alternate"]') || feed.querySelector('link');
-    const link = linkEl?.getAttribute('href') || null;
+  if (doc.feed) {
+    const feed = doc.feed;
+    const title = getText(feed.title) || 'Untitled Feed';
+    const subtitle = getText(feed.subtitle);
+    const links = Array.isArray(feed.link) ? feed.link : feed.link ? [feed.link] : [];
+    const altLink = links.find((l: Record<string, unknown>) => l['@_rel'] === 'alternate') || links[0];
+    const link = altLink?.['@_href'] || null;
 
     const items: FeedItem[] = [];
-    const entries = feed.querySelectorAll('entry');
+    const entries = Array.isArray(feed.entry) ? feed.entry : feed.entry ? [feed.entry] : [];
 
     for (const entry of entries) {
-      const entryTitle = entry.querySelector('title')?.textContent || 'Untitled';
-      const entryLinkEl = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
-      const entryLink = entryLinkEl?.getAttribute('href') || '';
-      const id = entry.querySelector('id')?.textContent || entryLink || `${feedUrl}-${entryTitle}`;
-      const author = entry.querySelector('author name')?.textContent || null;
-      const content = entry.querySelector('content')?.textContent ||
-                      entry.querySelector('summary')?.textContent || null;
-      const summary = entry.querySelector('summary')?.textContent || null;
-      const published = entry.querySelector('published')?.textContent ||
-                        entry.querySelector('updated')?.textContent;
+      const entryTitle = getText(entry.title) || 'Untitled';
+      const entryLinks = Array.isArray(entry.link) ? entry.link : entry.link ? [entry.link] : [];
+      const entryAltLink = entryLinks.find((l: Record<string, unknown>) => l['@_rel'] === 'alternate') || entryLinks[0];
+      const entryLink = entryAltLink?.['@_href'] || '';
+      const id = getText(entry.id) || entryLink || `${feedUrl}-${entryTitle}`;
+      const author = entry.author ? getText(entry.author.name) : null;
+      const content = getText(entry.content) || getText(entry.summary);
+      const summary = getText(entry.summary);
+      const published = getText(entry.published) || getText(entry.updated);
 
       items.push({
         guid: id,
