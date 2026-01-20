@@ -1,4 +1,4 @@
-import { SplitPane } from 'react-split-pane';
+import { SplitPane, Pane } from 'react-split-pane';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { ArticleList } from '../articles/ArticleList';
@@ -149,8 +149,8 @@ export function AppLayout() {
 
           <div className="flex-1 flex overflow-hidden"> {/* This div is the main content area, sibling to Sidebar */}
             {layout === 'side-by-side' && (
-              <SplitPane split="vertical" minSize={200} defaultSize={400}>
-                <div> {/* ArticleList Container */}
+              <SplitPane direction="vertical">
+                <Pane minSize={200} defaultSize={400}>
                   <ArticleList
                     articles={articles}
                     selectedArticle={selectedArticle}
@@ -158,10 +158,10 @@ export function AppLayout() {
                     viewTitle={view.title}
                     onMarkAllRead={handleMarkAllRead}
                   />
-                </div>
-                <div> {/* ArticlePane Container */}
+                </Pane>
+                <Pane>
                   <ArticlePane article={selectedArticle} fontSize={fontSize} />
-                </div>
+                </Pane>
               </SplitPane>
             )}
 

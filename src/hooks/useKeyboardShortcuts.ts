@@ -13,6 +13,7 @@ interface KeyboardShortcuts {
   onSearch?: () => void;
   onRefresh?: () => void;
   onAddFeed?: () => void;
+  onCloseArticle?: () => void;
 }
 
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcuts) {
