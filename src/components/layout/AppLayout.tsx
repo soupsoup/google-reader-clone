@@ -1,15 +1,14 @@
-import { SplitPane } from 'react-split-pane';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { ArticleList } from '../articles/ArticleList';
 import { ArticleView } from '../articles/ArticleView';
-import { ArticlePane } from '../articles/ArticlePane';
 import { Header } from './Header';
 import { AddFeedModal } from '../feeds/AddFeedModal';
 import { useFeeds } from '../../hooks/useFeeds';
 import { useArticles } from '../../hooks/useArticles';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { TopBottomResizablePane } from '../common/TopBottomResizablePane';
+import { LeftRightResizablePane } from '../common/LeftRightResizablePane';
 import type { ViewState, ArticleWithState, Layout } from '../../types';
 
 export function AppLayout() {
@@ -19,7 +18,7 @@ export function AppLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddFeed, setShowAddFeed] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [layout, setLayout] = useState<Layout>('side-by-side');
+  const [layout, setLayout] = useState<Layout>('top-and-bottom');
   const [fontSize, setFontSize] = useState(28);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,20 +148,14 @@ export function AppLayout() {
 
           <div className="flex-1 flex overflow-hidden"> {/* This div is the main content area, sibling to Sidebar */}
             {layout === 'side-by-side' && (
-              <SplitPane split="vertical" minSize={200} defaultSize={400}>
-                <div> {/* ArticleList Container */}
-                  <ArticleList
-                    articles={articles}
-                    selectedArticle={selectedArticle}
-                    onSelectArticle={handleSelectArticle}
-                    viewTitle={view.title}
-                    onMarkAllRead={handleMarkAllRead}
-                  />
-                </div>
-                <div> {/* ArticlePane Container */}
-                  <ArticlePane article={selectedArticle} fontSize={fontSize} />
-                </div>
-              </SplitPane>
+              <LeftRightResizablePane
+                articles={articles}
+                selectedArticle={selectedArticle}
+                onSelectArticle={handleSelectArticle}
+                viewTitle={view.title}
+                onMarkAllRead={handleMarkAllRead}
+                articlePaneFontSize={fontSize}
+              />
             )}
 
             {layout === 'top-and-bottom' && (

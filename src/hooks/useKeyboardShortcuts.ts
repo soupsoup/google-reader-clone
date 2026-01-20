@@ -4,6 +4,7 @@ interface KeyboardShortcuts {
   onNextArticle?: () => void;
   onPrevArticle?: () => void;
   onOpenArticle?: () => void;
+  onCloseArticle?: () => void;
   onToggleStar?: () => void;
   onToggleRead?: () => void;
   onMarkAllRead?: () => void;

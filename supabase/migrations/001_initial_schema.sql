@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Feeds table (global, shared across users)
 CREATE TABLE feeds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   url TEXT UNIQUE NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
@@ -18,7 +18,7 @@ CREATE INDEX idx_feeds_url ON feeds(url);
 
 -- Folders table (per user)
 CREATE TABLE folders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   sort_order INTEGER DEFAULT 0,
@@ -30,7 +30,7 @@ CREATE INDEX idx_folders_user_id ON folders(user_id);
 
 -- User feed subscriptions (join table)
 CREATE TABLE user_feeds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   feed_id UUID NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
   folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
@@ -45,7 +45,7 @@ CREATE INDEX idx_user_feeds_folder_id ON user_feeds(folder_id);
 
 -- Articles table (global, linked to feeds)
 CREATE TABLE articles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   feed_id UUID NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
   guid TEXT NOT NULL,
   title TEXT NOT NULL,
@@ -64,7 +64,7 @@ CREATE INDEX idx_articles_feed_published ON articles(feed_id, published_at DESC)
 
 -- User article state (read/starred per user)
 CREATE TABLE user_articles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
   is_read BOOLEAN DEFAULT FALSE,
@@ -132,6 +132,9 @@ CREATE POLICY "Users can view articles from subscribed feeds" ON articles
       AND user_feeds.feed_id = articles.feed_id
     )
   );
+
+CREATE POLICY "Service role can insert articles" ON articles
+  FOR INSERT TO service_role WITH CHECK (true);
 
 -- User Articles: Users can only access their own article states
 CREATE POLICY "Users can view their own article states" ON user_articles
