@@ -115,16 +115,10 @@ export function useFeeds() {
     mutationFn: async ({ url, folderId }: { url: string; folderId?: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Get current session for auth token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
-
       // Call edge function to fetch and parse feed
+      // Supabase client automatically includes the auth token
       const { data, error } = await supabase.functions.invoke('fetch-feeds', {
         body: { feed_url: url, user_id: user.id },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (error) throw error;
@@ -220,15 +214,9 @@ export function useFeeds() {
 
   const refreshFeedMutation = useMutation({
     mutationFn: async (feedId: string) => {
-      // Get current session for auth token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
-
+      // Supabase client automatically includes the auth token
       const { data, error } = await supabase.functions.invoke('fetch-feeds', {
         body: { feed_id: feedId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       if (error) throw error;
