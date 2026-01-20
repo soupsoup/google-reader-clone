@@ -1,10 +1,40 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { XMLParser } from 'https://esm.sh/fast-xml-parser@4.3.2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Configure CORS - restrict to your domain in production
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || ['*'];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const isAllowed = allowedOrigins.includes('*') || (origin && allowedOrigins.includes(origin));
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? (origin || '*') : allowedOrigins[0] || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+// Simple in-memory rate limiter (per-function instance)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 30; // 30 requests per minute per user
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+
+  if (userLimit.count >= MAX_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+
+  userLimit.count++;
+  return true;
+}
 
 interface FeedItem {
   guid: string;
@@ -111,18 +141,53 @@ function parseRSS(xml: string, feedUrl: string): ParsedFeed {
 }
 
 async function fetchFeed(url: string): Promise<{ xml: string; finalUrl: string }> {
+  // Validate URL to prevent SSRF attacks
+  const parsedUrl = new URL(url);
+
+  // Block internal/private IP ranges
+  const hostname = parsedUrl.hostname;
+  if (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.startsWith('192.168.') ||
+    hostname.startsWith('10.') ||
+    hostname.startsWith('172.16.') ||
+    hostname.startsWith('169.254.')
+  ) {
+    throw new Error('Invalid feed URL: Internal addresses not allowed');
+  }
+
+  // Only allow HTTP/HTTPS protocols
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    throw new Error('Invalid feed URL: Only HTTP/HTTPS protocols allowed');
+  }
+
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'GoogleReaderClone/1.0',
       'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
     },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(10000), // 10 second timeout
   });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch feed: ${response.status}`);
   }
 
+  // Limit response size to 10MB
+  const contentLength = response.headers.get('content-length');
+  if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+    throw new Error('Feed too large: Maximum 10MB allowed');
+  }
+
   const xml = await response.text();
+
+  // Additional size check after reading
+  if (xml.length > 10 * 1024 * 1024) {
+    throw new Error('Feed too large: Maximum 10MB allowed');
+  }
+
   return { xml, finalUrl: response.url };
 }
 
@@ -137,15 +202,53 @@ function extractFavicon(siteUrl: string | null): string | null {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const { feed_url, feed_id, user_id } = await req.json();
 

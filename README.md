@@ -118,6 +118,49 @@ supabase/
 - TechCrunch: `https://techcrunch.com/feed/`
 - Ars Technica: `https://feeds.arstechnica.com/arstechnica/index`
 
+## Production Deployment
+
+This application is production-ready with built-in security features including:
+
+- Authentication and authorization via Supabase Auth
+- Row Level Security (RLS) on all database tables
+- Rate limiting on API endpoints (30 req/min per user)
+- SSRF protection and input validation
+- Content Security Policy (CSP) headers
+- HTTPS enforcement via HSTS
+- CORS configuration
+- Request size limits and timeouts
+
+For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Quick Deploy
+
+**Vercel** (Recommended)
+```bash
+vercel --prod
+```
+
+**Netlify**
+```bash
+netlify deploy --prod
+```
+
+**Docker**
+```bash
+docker-compose up -d
+```
+
+## Security
+
+This application implements multiple layers of security:
+
+- **Frontend**: CSP headers, XSS protection, frame protection
+- **Backend**: Authentication required, rate limiting, SSRF protection
+- **Database**: Row Level Security (RLS), user data isolation
+- **Network**: HTTPS enforcement, secure CORS configuration
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete security documentation.
+
 ## License
 
 MIT
