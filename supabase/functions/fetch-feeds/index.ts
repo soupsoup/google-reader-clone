@@ -162,33 +162,56 @@ async function fetchFeed(url: string): Promise<{ xml: string; finalUrl: string }
     throw new Error('Invalid feed URL: Only HTTP/HTTPS protocols allowed');
   }
 
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'GoogleReaderClone/1.0',
-      'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
-    },
-    redirect: 'follow',
-    signal: AbortSignal.timeout(10000), // 10 second timeout
-  });
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch feed: ${response.status}`);
+  // Try up to 2 times with different settings
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; GoogleReaderClone/1.0)',
+          'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000), // 15 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch feed: HTTP ${response.status} ${response.statusText}`);
+      }
+
+      // Limit response size to 10MB
+      const contentLength = response.headers.get('content-length');
+      if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+        throw new Error('Feed too large: Maximum 10MB allowed');
+      }
+
+      const xml = await response.text();
+
+      // Additional size check after reading
+      if (xml.length > 10 * 1024 * 1024) {
+        throw new Error('Feed too large: Maximum 10MB allowed');
+      }
+
+      return { xml, finalUrl: response.url };
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Fetch attempt ${attempt + 1} failed:`, error.message);
+
+      // If it's a validation error (SSRF, size), don't retry
+      if (error.message.includes('Invalid feed URL') || error.message.includes('too large')) {
+        throw error;
+      }
+
+      // Wait a bit before retry
+      if (attempt < 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   }
 
-  // Limit response size to 10MB
-  const contentLength = response.headers.get('content-length');
-  if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
-    throw new Error('Feed too large: Maximum 10MB allowed');
-  }
-
-  const xml = await response.text();
-
-  // Additional size check after reading
-  if (xml.length > 10 * 1024 * 1024) {
-    throw new Error('Feed too large: Maximum 10MB allowed');
-  }
-
-  return { xml, finalUrl: response.url };
+  // If we got here, all attempts failed
+  throw new Error(`Failed to fetch feed after 2 attempts: ${lastError?.message || 'Unknown error'}`);
 }
 
 function extractFavicon(siteUrl: string | null): string | null {
