@@ -34,3 +34,4 @@ credentials.json
 *.sw?
 
 supabase/.temp/
+.vercel
