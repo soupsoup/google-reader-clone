@@ -256,21 +256,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create client with user's token to verify authentication
+    // Create client with anon key to verify JWT
     const token = authHeader.replace('Bearer ', '');
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
-    });
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Verify the JWT token
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
+      console.error('Auth error:', authError);
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        JSON.stringify({
+          success: false,
+          error: 'Unauthorized',
+          details: authError?.message || 'Invalid or expired token'
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
