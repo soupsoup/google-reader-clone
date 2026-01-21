@@ -21,13 +21,13 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
     : 'Unknown date';
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-white md:bg-black/30 z-40 flex items-center justify-center md:p-4" onClick={onClose}>
       <div
-        className="bg-white rounded shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        className="bg-white md:rounded md:shadow-xl w-full md:max-w-4xl h-full md:max-h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Article header */}
-        <div className="border-b border-gray-300 bg-[#f5f5f5] px-4 py-3 flex-shrink-0 rounded-t">
+        <div className="border-b border-gray-300 bg-[#f5f5f5] px-3 sm:px-4 py-3 flex-shrink-0 md:rounded-t">
           <div className="flex items-start gap-3">
             {/* Star button */}
             <button
@@ -46,7 +46,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
 
             <div className="flex-1 min-w-0">
               {/* Title */}
-              <h1 className="text-[18px] font-bold text-[#15c] leading-tight">
+              <h1 className="text-base sm:text-[18px] font-bold text-[#15c] leading-tight">
                 <a
                   href={article.url}
                   target="_blank"
@@ -58,7 +58,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
               </h1>
 
               {/* Meta info */}
-              <div className="flex items-center gap-2 mt-1 text-[14px] text-gray-600">
+              <div className="flex items-center gap-2 mt-1 text-[13px] sm:text-[14px] text-gray-600 flex-wrap">
                 {article.feed?.favicon_url && (
                   <img
                     src={article.feed.favicon_url}
@@ -74,26 +74,26 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
                   </>
                 )}
               </div>
-              <div className="text-[13px] text-gray-500 mt-0.5">
+              <div className="text-xs sm:text-[13px] text-gray-500 mt-0.5">
                 {publishedDate}
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
                 onClick={onToggleRead}
-                className="text-[14px] text-[#15c] hover:underline"
+                className="hidden sm:block text-[14px] text-[#15c] hover:underline"
                 title={article.is_read ? 'Mark as unread (m)' : 'Mark as read (m)'}
               >
                 {article.is_read ? 'Mark unread' : 'Mark read'}
               </button>
-              <span className="text-gray-400">|</span>
+              <span className="hidden sm:inline text-gray-400">|</span>
               <a
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[14px] text-[#15c] hover:underline flex items-center gap-1"
+                className="hidden sm:flex text-[14px] text-[#15c] hover:underline items-center gap-1"
                 title="Open in new tab (o)"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -101,10 +101,10 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
               </a>
               {onClose && (
                 <>
-                  <span className="text-gray-400">|</span>
+                  <span className="hidden sm:inline text-gray-400">|</span>
                   <button
                     onClick={onClose}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-gray-700 p-1"
                     title="Close"
                   >
                     <X className="h-5 w-5" />
@@ -116,8 +116,8 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
         </div>
 
         {/* Article content */}
-        <div className="flex-1 overflow-y-auto bg-white rounded-b" style={{ fontSize: `${fontSize}px` }}>
-          <div className="max-w-3xl mx-auto p-6">
+        <div className="flex-1 overflow-y-auto bg-white md:rounded-b" style={{ fontSize: `${fontSize}px` }}>
+          <div className="max-w-3xl mx-auto p-4 sm:p-6">
             <ArticleContent article={article} fontSize={fontSize} />
 
             {/* Article footer */}
@@ -126,7 +126,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[14px] text-[#15c] hover:underline"
+                className="inline-flex items-center gap-2 text-sm sm:text-[14px] text-[#15c] hover:underline"
               >
                 <ExternalLink className="h-4 w-4" />
                 Read original article

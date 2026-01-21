@@ -18,6 +18,7 @@ interface SidebarProps {
   currentView: ViewState;
   onSelectView: (view: ViewState) => void;
   onAddFeed: () => void;
+  onCloseSidebar?: () => void;
 }
 
 export function Sidebar({
@@ -26,6 +27,7 @@ export function Sidebar({
   currentView,
   onSelectView,
   onAddFeed,
+  onCloseSidebar,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [expandedSubscriptions, setExpandedSubscriptions] = useState(true);
@@ -75,13 +77,28 @@ export function Sidebar({
     }
   }, [moveFeedToFolder]);
 
+  const handleViewSelect = (view: ViewState) => {
+    onSelectView(view);
+    // Only close sidebar on mobile/tablet (below lg breakpoint)
+    if (onCloseSidebar && window.innerWidth < 1024) {
+      onCloseSidebar();
+    }
+  };
+
   if (collapsed) {
     return null;
   }
 
   return (
-    <aside className="w-56 border-r border-gray-300 bg-white flex-shrink-0 overflow-y-auto">
-      <nav className="py-3">
+    <>
+      {/* Mobile overlay backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        onClick={onCloseSidebar}
+      />
+
+      <aside className="fixed lg:static inset-y-0 left-0 w-56 border-r border-gray-300 bg-white flex-shrink-0 overflow-y-auto z-50">
+        <nav className="py-3">
         {/* Subscribe button */}
         <div className="px-3 mb-4">
           <button
@@ -94,7 +111,7 @@ export function Sidebar({
 
         {/* Home */}
         <button
-          onClick={() => onSelectView({ type: 'all', title: 'All items' })}
+          onClick={() => handleViewSelect({ type: 'all', title: 'All items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('all')
               ? 'bg-[#fcf1de]'
@@ -108,7 +125,7 @@ export function Sidebar({
 
         {/* All items */}
         <button
-          onClick={() => onSelectView({ type: 'all', title: 'All items' })}
+          onClick={() => handleViewSelect({ type: 'all', title: 'All items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('all')
               ? 'bg-[#fcf1de]'
@@ -124,7 +141,7 @@ export function Sidebar({
 
         {/* Starred items */}
         <button
-          onClick={() => onSelectView({ type: 'starred', title: 'Starred items' })}
+          onClick={() => handleViewSelect({ type: 'starred', title: 'Starred items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('starred')
               ? 'bg-[#fcf1de]'
@@ -186,7 +203,7 @@ export function Sidebar({
                         feed={feed}
                         isActive={isActive('feed', feed.id)}
                         onSelect={() =>
-                          onSelectView({
+                          handleViewSelect({
                             type: 'feed',
                             id: feed.id,
                             title: feed.custom_title || feed.title,
@@ -197,6 +214,7 @@ export function Sidebar({
                           setContextMenu({ feedId: feed.id, x: e.clientX, y: e.clientY });
                         }}
                         onDragStart={handleDragStart}
+                        onDelete={() => removeFeed(feed.id)}
                       />
                     ))}
                   </div>
@@ -226,6 +244,7 @@ export function Sidebar({
                     setContextMenu({ feedId: feed.id, x: e.clientX, y: e.clientY });
                   }}
                   onDragStart={handleDragStart}
+                  onDelete={() => removeFeed(feed.id)}
                 />
               ))}
             </div>
@@ -291,6 +310,7 @@ export function Sidebar({
         </>
       )}
     </aside>
+    </>
   );
 }
 
@@ -300,32 +320,47 @@ interface FeedItemProps {
   onSelect: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onDragStart: (e: React.DragEvent, feedId: string) => void;
+  onDelete: () => void;
 }
 
-function FeedItem({ feed, isActive, onSelect, onContextMenu, onDragStart }: FeedItemProps) {
+function FeedItem({ feed, isActive, onSelect, onContextMenu, onDragStart, onDelete }: FeedItemProps) {
   return (
-    <button
-      draggable="true"
-      onDragStart={(e) => onDragStart(e, feed.id)}
-      onClick={onSelect}
-      onContextMenu={onContextMenu}
-      className={`w-full flex items-center gap-2 px-3 py-1 text-left text-[14px] ${
+    <div
+      className={`w-full flex items-center gap-2 px-3 py-1 text-left text-[14px] group ${
         isActive
           ? 'bg-[#fcf1de]'
           : 'hover:bg-[#f1f1f1]'
       }`}
     >
-      {feed.favicon_url ? (
-        <img src={feed.favicon_url} alt="" className="h-4 w-4 flex-shrink-0" />
-      ) : (
-        <div className="h-4 w-4 bg-[#77a] rounded-sm flex-shrink-0" />
-      )}
-      <span className="text-[#15c] flex-1 truncate">
-        {feed.custom_title || feed.title}
-      </span>
-      {feed.unread_count > 0 && (
-        <span className="text-gray-600">({feed.unread_count})</span>
-      )}
-    </button>
+      <button
+        draggable="true"
+        onDragStart={(e) => onDragStart(e, feed.id)}
+        onClick={onSelect}
+        onContextMenu={onContextMenu}
+        className="flex items-center gap-2 flex-1 min-w-0"
+      >
+        {feed.favicon_url ? (
+          <img src={feed.favicon_url} alt="" className="h-4 w-4 flex-shrink-0" />
+        ) : (
+          <div className="h-4 w-4 bg-[#77a] rounded-sm flex-shrink-0" />
+        )}
+        <span className="text-[#15c] flex-1 truncate">
+          {feed.custom_title || feed.title}
+        </span>
+        {feed.unread_count > 0 && (
+          <span className="text-gray-600">({feed.unread_count})</span>
+        )}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="flex-shrink-0 p-1 opacity-0 group-hover:opacity-100 lg:opacity-100 hover:bg-red-100 rounded transition-opacity"
+        title="Unsubscribe"
+      >
+        <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-600" />
+      </button>
+    </div>
   );
 }

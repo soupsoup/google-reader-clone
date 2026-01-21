@@ -33,51 +33,77 @@ body {
 
 /* Article content styles */
 .article-content {
-  line-height: 1.6;
+  line-height: 1.7;
   color: #333;
   background-color: white;
 }
 
+.article-content > *:first-child {
+  margin-top: 0;
+}
+
+.article-content > *:last-child {
+  margin-bottom: 0;
+}
+
 .article-content p {
-  margin-bottom: 1em;
+  margin-bottom: 1.25em;
+  margin-top: 0;
 }
 
 .article-content img {
   max-width: 100%;
   height: auto;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .article-content a {
-  color: #15c;
+  color: #1a73e8;
   text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
 }
 
 .article-content a:hover {
-  text-decoration: underline;
+  border-bottom-color: #1a73e8;
 }
 
 .article-content pre {
-  background: #f5f5f5;
+  background: #f8f9fa;
   padding: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
   overflow-x: auto;
-  font-size: 12px;
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 1.5em 0;
 }
 
 .article-content code {
-  background: #f5f5f5;
-  padding: 0.2rem 0.4rem;
-  font-size: 12px;
-  font-family: monospace;
+  background: #f8f9fa;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  border: 1px solid #e0e0e0;
+}
+
+.article-content pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  font-size: inherit;
 }
 
 .article-content blockquote {
-  border-left: 3px solid #c74a35;
-  margin: 1rem 0;
-  padding-left: 1rem;
+  border-left: 4px solid #e0e0e0;
+  margin: 1.5em 0;
+  padding: 0.5em 0 0.5em 1.5em;
   color: #666;
   font-style: italic;
+  background: #f8f9fa;
 }
 
 .article-content h1,
@@ -86,19 +112,23 @@ body {
 .article-content h4,
 .article-content h5,
 .article-content h6 {
-  color: #333;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-weight: bold;
+  color: #202124;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-.article-content h1 { font-size: 1.5em; }
-.article-content h2 { font-size: 1.3em; }
-.article-content h3 { font-size: 1.1em; }
+.article-content h1 { font-size: 1.75em; }
+.article-content h2 { font-size: 1.5em; }
+.article-content h3 { font-size: 1.25em; }
+.article-content h4 { font-size: 1.1em; }
+.article-content h5 { font-size: 1em; font-weight: 700; }
+.article-content h6 { font-size: 0.95em; font-weight: 700; text-transform: uppercase; }
 
 .article-content ul,
 .article-content ol {
-  margin: 1em 0;
+  margin: 1.25em 0;
   padding-left: 2em;
 }
 
@@ -106,9 +136,87 @@ body {
   margin-bottom: 0.5em;
 }
 
+.article-content ul ul,
+.article-content ul ol,
+.article-content ol ul,
+.article-content ol ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.article-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+}
+
+.article-content th,
+.article-content td {
+  border: 1px solid #e0e0e0;
+  padding: 0.75em;
+  text-align: left;
+}
+
+.article-content th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.article-content hr {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 2em 0;
+}
+
+.article-content figure {
+  margin: 1.5em 0;
+}
+
+.article-content figcaption {
+  font-size: 0.9em;
+  color: #666;
+  text-align: center;
+  margin-top: 0.5em;
+  font-style: italic;
+}
+
+/* Clean up messy HTML from feeds */
+.article-content > br {
+  display: none;
+}
+
+.article-content p:empty {
+  display: none;
+}
+
+.article-content div:empty {
+  display: none;
+}
+
 /* Selection color */
 ::selection {
   background: #c2dbff;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mobile article card spacing - force smaller margins on mobile */
+@media (max-width: 767px) {
+  .mobile-article-cards {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .mobile-article-cards article {
+    margin-left: 4px !important;
+    margin-right: 4px !important;
+  }
 }
 
 /* react-split-pane styles */

@@ -18,9 +18,18 @@ export function AppLayout() {
   const [showArticleAsModal, setShowArticleAsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddFeed, setShowAddFeed] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [layout, setLayout] = useState<Layout>('side-by-side');
-  const [fontSize, setFontSize] = useState(28);
+
+  // Default sidebar to collapsed on mobile, open on desktop
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 1024; // lg breakpoint
+  });
+
+  // Default to modal layout on mobile, side-by-side on desktop
+  const [layout, setLayout] = useState<Layout>(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 'modal' : 'side-by-side'; // md breakpoint
+  });
+
+  const [fontSize, setFontSize] = useState(14);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { organizedFeeds, addFeed, isAddingFeed, refreshFeed } = useFeeds();
@@ -145,12 +154,13 @@ export function AppLayout() {
             currentView={view}
             onSelectView={setView}
             onAddFeed={() => setShowAddFeed(true)}
+            onCloseSidebar={() => setSidebarCollapsed(true)}
           />
 
-          <div className="flex-1 flex overflow-hidden"> {/* This div is the main content area, sibling to Sidebar */}
+          <div className="flex-1 overflow-hidden" style={{ display: 'flex', height: '100%' }}> {/* This div is the main content area, sibling to Sidebar */}
             {layout === 'side-by-side' && (
-              <SplitPane direction="vertical">
-                <Pane minSize={200} defaultSize={400}>
+              <SplitPane direction="horizontal">
+                <Pane minSize="200px" defaultSize="400px">
                   <ArticleList
                     articles={articles}
                     selectedArticle={selectedArticle}

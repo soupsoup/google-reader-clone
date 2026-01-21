@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { RefObject } from 'react';
-import { Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus } from 'lucide-react';
+import { Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, Menu } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import type { Layout } from '../../types';
 
@@ -20,6 +20,7 @@ export function Header({
   searchQuery,
   onSearchChange,
   searchInputRef,
+  onToggleSidebar,
   layout,
   onLayoutChange,
   fontSize,
@@ -32,10 +33,19 @@ export function Header({
   return (
     <header className="bg-white border-b border-gray-300 flex-shrink-0">
       {/* Top bar with logo and search */}
-      <div className="h-14 flex items-center px-4 gap-4">
+      <div className="h-14 flex items-center px-2 sm:px-4 gap-2 sm:gap-4">
+        {/* Mobile menu button */}
+        <button
+          onClick={onToggleSidebar}
+          className="p-2 hover:bg-gray-100 rounded lg:hidden"
+          aria-label="Toggle sidebar"
+        >
+          <Menu className="h-5 w-5 text-gray-600" />
+        </button>
+
         {/* Foogle Logo */}
         <div className="flex items-center">
-          <span className="text-2xl font-normal tracking-tight">
+          <span className="text-xl sm:text-2xl font-normal tracking-tight">
             <span className="text-[#4285f4]">F</span>
             <span className="text-[#ea4335]">o</span>
             <span className="text-[#fbbc05]">o</span>
@@ -46,7 +56,7 @@ export function Header({
         </div>
 
         {/* Search */}
-        <div className="flex-1 max-w-xl flex items-center gap-2">
+        <div className="hidden sm:flex flex-1 max-w-xl items-center gap-2">
           <div className="relative flex-1">
             <input
               ref={searchInputRef}
@@ -63,10 +73,10 @@ export function Header({
         </div>
 
         {/* Right side - user info */}
-        <div className="flex items-center gap-3 ml-auto">
-          <span className="text-[14px] text-gray-700">{user?.email?.split('@')[0]}</span>
+        <div className="flex items-center gap-1 sm:gap-3 ml-auto">
+          <span className="hidden md:block text-[14px] text-gray-700">{user?.email?.split('@')[0]}</span>
 
-          <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
             <button
               onClick={() => onFontSizeChange(fontSize - 1)}
               className="p-2 rounded hover:bg-gray-100"
@@ -83,7 +93,7 @@ export function Header({
             </button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             <button
               onClick={() => onLayoutChange('modal')}
               className={`p-2 rounded ${layout === 'modal' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
