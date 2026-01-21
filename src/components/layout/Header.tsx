@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { RefObject } from 'react';
-import { Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus } from 'lucide-react';
+import { Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import type { Layout } from '../../types';
 
@@ -14,6 +14,8 @@ interface HeaderProps {
   onLayoutChange: (layout: Layout) => void;
   fontSize: number;
   onFontSizeChange: (size: number) => void;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 export function Header({
@@ -24,10 +26,20 @@ export function Header({
   onLayoutChange,
   fontSize,
   onFontSizeChange,
+  onRefresh,
+  isRefreshing,
 }: HeaderProps) {
   const { signOut, user } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleRefreshClick = () => {
+    setIsClicked(true);
+    onRefresh();
+    // Reset the clicked state after animation
+    setTimeout(() => setIsClicked(false), 300);
+  };
 
   return (
     <header className="bg-white border-b border-gray-300 flex-shrink-0">
@@ -65,6 +77,25 @@ export function Header({
         {/* Right side - user info */}
         <div className="flex items-center gap-3 ml-auto">
           <span className="text-[14px] text-gray-700">{user?.email?.split('@')[0]}</span>
+
+          <button
+            onClick={handleRefreshClick}
+            disabled={isRefreshing}
+            className={`p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+              isClicked ? 'scale-95 bg-blue-50' : ''
+            }`}
+            title="Refresh all feeds (r)"
+          >
+            <RefreshCw
+              className={`h-5 w-5 transition-all ${
+                isRefreshing
+                  ? 'animate-spin text-blue-600'
+                  : isClicked
+                  ? 'text-blue-600 scale-110'
+                  : 'text-gray-600'
+              }`}
+            />
+          </button>
 
           <div className="flex items-center gap-1">
             <button

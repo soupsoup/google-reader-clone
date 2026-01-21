@@ -227,6 +227,33 @@ export function useFeeds() {
     },
   });
 
+  const refreshAllFeedsMutation = useMutation({
+    mutationFn: async () => {
+      const feeds = feedsQuery.data || [];
+
+      // Refresh all feeds in parallel
+      const results = await Promise.allSettled(
+        feeds.map(feed =>
+          supabase.functions.invoke('fetch-feeds', {
+            body: { feed_id: feed.id },
+          })
+        )
+      );
+
+      // Check if any failed
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.error('Some feeds failed to refresh:', failures);
+      }
+
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+    },
+  });
+
   return {
     feeds: feedsQuery.data || [],
     folders: foldersQuery.data || [],
@@ -239,6 +266,8 @@ export function useFeeds() {
     deleteFolder: deleteFolderMutation.mutateAsync,
     moveFeedToFolder: moveFeedToFolderMutation.mutateAsync,
     refreshFeed: refreshFeedMutation.mutateAsync,
+    refreshAllFeeds: refreshAllFeedsMutation.mutateAsync,
     isAddingFeed: addFeedMutation.isPending,
+    isRefreshing: refreshFeedMutation.isPending || refreshAllFeedsMutation.isPending,
   };
 }

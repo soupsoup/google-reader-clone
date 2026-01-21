@@ -105,10 +105,25 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { feed_url, user_id } = await req.json();
-    if (!feed_url) throw new Error("feed_url is required");
+    const { feed_url, feed_id, user_id } = await req.json();
 
-    const { xml, finalUrl } = await fetchFeed(feed_url);
+    // If feed_id is provided, fetch the feed URL from the database
+    let feedUrl = feed_url;
+    if (feed_id && !feed_url) {
+      const { data: feedData, error: fetchError } = await supabase
+        .from('feeds')
+        .select('url')
+        .eq('id', feed_id)
+        .single();
+
+      if (fetchError) throw new Error(`Failed to fetch feed URL: ${fetchError.message}`);
+      if (!feedData) throw new Error(`Feed not found with id: ${feed_id}`);
+      feedUrl = feedData.url;
+    }
+
+    if (!feedUrl) throw new Error("feed_url or feed_id is required");
+
+    const { xml, finalUrl } = await fetchFeed(feedUrl);
     const parsed = parseRSS(xml, finalUrl);
 
     const { data: feed, error: feedError } = await supabase

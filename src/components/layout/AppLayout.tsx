@@ -4,6 +4,7 @@ import { ArticleList } from '../articles/ArticleList';
 import { ArticleView } from '../articles/ArticleView';
 import { Header } from './Header';
 import { AddFeedModal } from '../feeds/AddFeedModal';
+import { Toast, type ToastProps } from '../common/Toast';
 import { useFeeds } from '../../hooks/useFeeds';
 import { useArticles } from '../../hooks/useArticles';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -20,14 +21,24 @@ export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [layout, setLayout] = useState<Layout>('top-and-bottom');
   const [fontSize, setFontSize] = useState(28);
+  const [toast, setToast] = useState<Omit<ToastProps, 'onClose'> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { organizedFeeds, addFeed, isAddingFeed, refreshFeed } = useFeeds();
+  const { organizedFeeds, addFeed, isAddingFeed, refreshAllFeeds, isRefreshing } = useFeeds();
   const { articles, toggleRead, toggleStar, markAllRead, refetch } = useArticles({
     viewType: view.type,
     viewId: view.id,
     searchQuery: searchQuery || undefined,
   });
+
+  // Auto-refresh all feeds on page load
+  useEffect(() => {
+    if (organizedFeeds) {
+      refreshAllFeeds().catch(err => {
+        console.error('Failed to refresh feeds on load:', err);
+      });
+    }
+  }, []); // Empty dependency array ensures this only runs once on mount
 
   const selectedIndex = selectedArticle
     ? articles.findIndex(a => a.id === selectedArticle.id)
@@ -79,11 +90,18 @@ export function AppLayout() {
   }, [view, markAllRead]);
 
   const handleRefresh = useCallback(() => {
-    if (view.type === 'feed' && view.id) {
-      refreshFeed(view.id);
-    }
-    refetch();
-  }, [view, refreshFeed, refetch]);
+    // Show toast that refresh is starting
+    setToast({ message: 'Refreshing feeds...', type: 'info', duration: 2000 });
+
+    // Refresh all feeds regardless of current view
+    refreshAllFeeds().then(() => {
+      refetch();
+      setToast({ message: 'All feeds refreshed successfully!', type: 'success', duration: 3000 });
+    }).catch(err => {
+      console.error('Failed to refresh feeds:', err);
+      setToast({ message: 'Failed to refresh some feeds', type: 'error', duration: 4000 });
+    });
+  }, [refreshAllFeeds, refetch]);
 
   const handleCloseArticle = () => {
     setShowArticleAsModal(false);
@@ -135,6 +153,8 @@ export function AppLayout() {
         onLayoutChange={setLayout}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
       />
 
         <div className="flex-1 flex overflow-hidden">
@@ -198,6 +218,15 @@ export function AppLayout() {
         isLoading={isAddingFeed}
         folders={organizedFeeds?.folders || []}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
