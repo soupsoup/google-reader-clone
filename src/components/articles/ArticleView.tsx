@@ -2,25 +2,9 @@ import { format } from 'date-fns';
 import { Star, ExternalLink, X } from 'lucide-react';
 import type { ArticleWithState } from '../../types';
 
+// Don't manipulate HTML, just return it as-is
 function cleanHtmlContent(html: string): string {
-  if (!html) return '';
-
-  // First, wrap any text not in p tags with p tags
-  let cleaned = html;
-
-  // Convert double line breaks to paragraph breaks
-  cleaned = cleaned.replace(/\n\n/g, '</p><p>');
-
-  // Convert br tags to actual line breaks within content
-  cleaned = cleaned.replace(/<br\s*\/?>/gi, '<br />');
-
-  // Ensure we don't have empty paragraphs
-  cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '');
-
-  // Add spacing between consecutive paragraphs
-  cleaned = cleaned.replace(/<\/p><p>/gi, '</p>\n<p>');
-
-  return cleaned;
+  return html || '';
 }
 
 interface ArticleViewProps {
@@ -139,21 +123,13 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
         <div className="flex-1 overflow-y-auto bg-white rounded-b">
           <div className="max-w-3xl mx-auto p-6">
             <div
-              className="prose prose-lg prose-gray max-w-none
-                         prose-headings:text-gray-900 prose-headings:font-semibold prose-headings:mb-4
-                         prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6 prose-p:text-[18px]
-                         prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                         prose-strong:text-gray-900 prose-strong:font-semibold
-                         prose-em:text-gray-700
-                         prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
-                         prose-ul:my-4 prose-ul:space-y-2
-                         prose-ol:my-4 prose-ol:space-y-2
-                         prose-li:text-gray-700 prose-li:text-[18px] prose-li:leading-relaxed
-                         prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-gray-800
-                         prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:my-4
-                         prose-img:rounded-lg prose-img:shadow-sm prose-img:my-4
-                         [&>*:first-child]:mt-0 [&>*:last-child]:mb-0
-                         [&_br]:block [&_br]:my-2"
+              className="text-[18px] leading-relaxed text-gray-700"
+              style={{
+                fontSize: '18px',
+                lineHeight: '1.75',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word'
+              }}
               dangerouslySetInnerHTML={{ __html: cleanHtmlContent(article.content || '') }}
             />
 
