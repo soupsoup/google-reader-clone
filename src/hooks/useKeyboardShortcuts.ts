@@ -68,10 +68,12 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcuts) {
     // Single key shortcuts
     switch (key) {
       case 'j':
+      case 'arrowdown':
         e.preventDefault();
         shortcuts.onNextArticle?.();
         break;
       case 'k':
+      case 'arrowup':
         e.preventDefault();
         shortcuts.onPrevArticle?.();
         break;
