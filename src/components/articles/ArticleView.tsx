@@ -126,7 +126,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
               className="text-[18px] text-gray-700"
               style={{
                 fontSize: '18px',
-                lineHeight: '1.6',
+                lineHeight: '0.65',
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
               }}
