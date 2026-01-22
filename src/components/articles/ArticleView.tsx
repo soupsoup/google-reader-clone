@@ -123,15 +123,25 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
         <div className="flex-1 overflow-y-auto bg-white rounded-b">
           <div className="max-w-3xl mx-auto p-6">
             <div
-              className="text-[18px] text-gray-700"
+              className="text-[18px] text-gray-700 article-content"
               style={{
                 fontSize: '18px',
-                lineHeight: '0.65',
+                lineHeight: '1.6',
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
               }}
-              dangerouslySetInnerHTML={{ __html: cleanHtmlContent(article.content || '') }}
+              dangerouslySetInnerHTML={{ __html: cleanedContent }}
             />
+            <style>{`
+              .article-content p {
+                margin-bottom: 0.5em;
+              }
+              .article-content br {
+                display: block;
+                content: "";
+                margin-top: 0.25em;
+              }
+            `}</style>
 
             {/* Article footer */}
             <div className="mt-8 pt-4 border-t border-gray-200">

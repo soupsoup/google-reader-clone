@@ -38,15 +38,25 @@ export function ArticleContent({ article }: ArticleContentProps) {
       </div>
 
       <div
-        className="text-[18px] text-gray-700"
+        className="text-[18px] text-gray-700 article-content"
         style={{
           fontSize: '18px',
-          lineHeight: '0.65',
+          lineHeight: '1.6',
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word'
         }}
         dangerouslySetInnerHTML={{ __html: cleanedContent }}
       />
+      <style>{`
+        .article-content p {
+          margin-bottom: 0.5em;
+        }
+        .article-content br {
+          display: block;
+          content: "";
+          margin-top: 0.25em;
+        }
+      `}</style>
     </>
   );
 }
