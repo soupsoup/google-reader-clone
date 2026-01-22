@@ -19,7 +19,7 @@ export function AppLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddFeed, setShowAddFeed] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [layout, setLayout] = useState<Layout>('top-and-bottom');
+  const [layout, setLayout] = useState<Layout>('side-by-side');
   const [fontSize, setFontSize] = useState(28);
   const [toast, setToast] = useState<Omit<ToastProps, 'onClose'> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
