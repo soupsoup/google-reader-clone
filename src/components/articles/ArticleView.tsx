@@ -20,6 +20,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
     return null;
   }
 
+  const cleanedContent = cleanHtmlContent(article.content || '');
   const publishedDate = article.published_at
     ? format(new Date(article.published_at), 'MMMM d, yyyy h:mm a')
     : 'Unknown date';
