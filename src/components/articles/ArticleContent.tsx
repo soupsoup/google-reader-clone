@@ -24,7 +24,7 @@ function cleanHtmlContent(html: string): string {
   return cleaned;
 }
 
-export function ArticleContent({ article, fontSize }: ArticleContentProps) {
+export function ArticleContent({ article }: ArticleContentProps) {
   const cleanedContent = cleanHtmlContent(article.content || '');
 
   return (
@@ -52,19 +52,20 @@ export function ArticleContent({ article, fontSize }: ArticleContentProps) {
       </div>
 
       <div
-        className="prose prose-lg prose-gray max-w-none
-                   prose-headings:text-gray-900 prose-headings:font-semibold
-                   prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+        className="prose prose-sm md:prose-base prose-gray max-w-none
+                   prose-headings:text-gray-900 prose-headings:font-semibold prose-headings:mb-3
+                   prose-p:text-gray-700 prose-p:leading-7 prose-p:mb-4 prose-p:text-[15px]
                    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
                    prose-strong:text-gray-900 prose-strong:font-semibold
                    prose-em:text-gray-700
-                   prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic
-                   prose-ul:space-y-2 prose-ol:space-y-2
-                   prose-li:text-gray-700
-                   prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-                   prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
-                   prose-img:rounded-lg prose-img:shadow-sm"
-        style={{ fontSize: `${fontSize}px` }}
+                   prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
+                   prose-ul:my-4 prose-ul:space-y-2
+                   prose-ol:my-4 prose-ol:space-y-2
+                   prose-li:text-gray-700 prose-li:text-[15px] prose-li:leading-7
+                   prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-gray-800
+                   prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:my-4
+                   prose-img:rounded-lg prose-img:shadow-sm prose-img:my-4
+                   [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
         dangerouslySetInnerHTML={{ __html: cleanedContent }}
       />
     </>
