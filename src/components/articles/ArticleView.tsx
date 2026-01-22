@@ -135,12 +135,13 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
             />
             <style>{`
               .article-content p {
-                margin-bottom: 0.25em;
+                margin: 0;
+                margin-bottom: 0.1em;
               }
               .article-content br {
                 display: block;
                 content: "";
-                margin-top: 0.1em;
+                margin-top: 0;
               }
             `}</style>
 
