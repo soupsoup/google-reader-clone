@@ -90,11 +90,15 @@ export function AppLayout() {
   }, [view, markAllRead]);
 
   const handleRefresh = useCallback(() => {
+    console.log('handleRefresh called in AppLayout!');
+    console.log('refreshAllFeeds function:', refreshAllFeeds);
+
     // Show toast that refresh is starting
     setToast({ message: 'Refreshing feeds...', type: 'info', duration: 2000 });
 
     // Refresh all feeds regardless of current view
     refreshAllFeeds().then(() => {
+      console.log('Refresh completed successfully');
       refetch();
       setToast({ message: 'All feeds refreshed successfully!', type: 'success', duration: 3000 });
     }).catch(err => {

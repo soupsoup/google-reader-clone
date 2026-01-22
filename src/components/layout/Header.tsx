@@ -35,6 +35,9 @@ export function Header({
   const [isClicked, setIsClicked] = useState(false);
 
   const handleRefreshClick = () => {
+    console.log('Refresh button clicked!');
+    console.log('onRefresh function:', onRefresh);
+    console.log('isRefreshing:', isRefreshing);
     setIsClicked(true);
     onRefresh();
     // Reset the clicked state after animation
