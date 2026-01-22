@@ -10,6 +10,8 @@ interface LeftRightResizablePaneProps {
   viewTitle: string;
   onMarkAllRead: () => void;
   articlePaneFontSize: number;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export function LeftRightResizablePane({
@@ -19,6 +21,8 @@ export function LeftRightResizablePane({
   viewTitle,
   onMarkAllRead,
   articlePaneFontSize,
+  onRefresh,
+  isRefreshing,
 }: LeftRightResizablePaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftPaneWidth, setLeftPaneWidth] = useState(400); // Default width for ArticleList
@@ -59,6 +63,8 @@ export function LeftRightResizablePane({
           onSelectArticle={onSelectArticle}
           viewTitle={viewTitle}
           onMarkAllRead={onMarkAllRead}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
         />
       </div>
       <div

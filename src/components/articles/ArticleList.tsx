@@ -8,6 +8,8 @@ interface ArticleListProps {
   onSelectArticle: (article: ArticleWithState) => void;
   viewTitle: string;
   onMarkAllRead: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export function ArticleList({
@@ -16,6 +18,8 @@ export function ArticleList({
   onSelectArticle,
   viewTitle,
   onMarkAllRead,
+  onRefresh,
+  isRefreshing = false,
 }: ArticleListProps) {
   const unreadCount = articles.filter(a => !a.is_read).length;
 
@@ -23,8 +27,13 @@ export function ArticleList({
     <div className="flex-1 flex flex-col bg-white border-r border-gray-300">
       {/* Toolbar */}
       <div className="h-10 px-3 border-b border-gray-300 bg-[#f5f5f5] flex items-center gap-3 flex-shrink-0">
-        <button className="p-1.5 hover:bg-gray-200 rounded" title="Refresh">
-          <RefreshCw className="h-4 w-4 text-gray-600" />
+        <button
+          onClick={onRefresh}
+          disabled={isRefreshing || !onRefresh}
+          className="p-1.5 hover:bg-gray-200 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          title="Refresh all feeds (r)"
+        >
+          <RefreshCw className={`h-4 w-4 text-gray-600 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
         </button>
         <span className="text-[14px] text-gray-700">
           {unreadCount > 0 ? `${unreadCount} new items` : 'No new items'}

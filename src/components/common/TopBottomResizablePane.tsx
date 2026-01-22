@@ -10,6 +10,8 @@ interface TopBottomResizablePaneProps {
   viewTitle: string;
   onMarkAllRead: () => void;
   articlePaneFontSize: number;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export function TopBottomResizablePane({
@@ -19,6 +21,8 @@ export function TopBottomResizablePane({
   viewTitle,
   onMarkAllRead,
   articlePaneFontSize,
+  onRefresh,
+  isRefreshing,
 }: TopBottomResizablePaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [topPaneHeight, setTopPaneHeight] = useState(300); // Default height for ArticleList
@@ -59,6 +63,8 @@ export function TopBottomResizablePane({
           onSelectArticle={onSelectArticle}
           viewTitle={viewTitle}
           onMarkAllRead={onMarkAllRead}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
         />
       </div>
       <div

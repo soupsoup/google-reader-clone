@@ -157,8 +157,6 @@ export function AppLayout() {
         onLayoutChange={setLayout}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
       />
 
         <div className="flex-1 flex overflow-hidden">
@@ -179,6 +177,8 @@ export function AppLayout() {
                 viewTitle={view.title}
                 onMarkAllRead={handleMarkAllRead}
                 articlePaneFontSize={fontSize}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
               />
             )}
 
@@ -190,6 +190,8 @@ export function AppLayout() {
                 viewTitle={view.title}
                 onMarkAllRead={handleMarkAllRead}
                 articlePaneFontSize={fontSize}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
               />
             )}
 
@@ -200,6 +202,8 @@ export function AppLayout() {
                 onSelectArticle={handleSelectArticle}
                 viewTitle={view.title}
                 onMarkAllRead={handleMarkAllRead}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
               />
             )}
           </div>
