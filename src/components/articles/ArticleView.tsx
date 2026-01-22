@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 import { Star, ExternalLink, X } from 'lucide-react';
 import type { ArticleWithState } from '../../types';
-import { ArticleContent } from './ArticleContent';
 
 interface ArticleViewProps {
   article: ArticleWithState | null;
@@ -116,9 +115,24 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, font
         </div>
 
         {/* Article content */}
-        <div className="flex-1 overflow-y-auto bg-white rounded-b" style={{ fontSize: `${fontSize}px` }}>
+        <div className="flex-1 overflow-y-auto bg-white rounded-b">
           <div className="max-w-3xl mx-auto p-6">
-            <ArticleContent article={article} fontSize={fontSize} />
+            <div
+              className="prose prose-lg prose-gray max-w-none
+                         prose-headings:text-gray-900 prose-headings:font-semibold
+                         prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+                         prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+                         prose-strong:text-gray-900 prose-strong:font-semibold
+                         prose-em:text-gray-700
+                         prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic
+                         prose-ul:space-y-2 prose-ol:space-y-2
+                         prose-li:text-gray-700
+                         prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+                         prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
+                         prose-img:rounded-lg prose-img:shadow-sm"
+              style={{ fontSize: `${fontSize}px` }}
+              dangerouslySetInnerHTML={{ __html: article.content || '' }}
+            />
 
             {/* Article footer */}
             <div className="mt-8 pt-4 border-t border-gray-200">
