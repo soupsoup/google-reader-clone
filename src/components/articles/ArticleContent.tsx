@@ -38,10 +38,10 @@ export function ArticleContent({ article }: ArticleContentProps) {
       </div>
 
       <div
-        className="text-[18px] leading-relaxed text-gray-700"
+        className="text-[18px] text-gray-700"
         style={{
           fontSize: '18px',
-          lineHeight: '1.75',
+          lineHeight: '1.6',
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word'
         }}

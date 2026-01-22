@@ -123,10 +123,10 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
         <div className="flex-1 overflow-y-auto bg-white rounded-b">
           <div className="max-w-3xl mx-auto p-6">
             <div
-              className="text-[18px] leading-relaxed text-gray-700"
+              className="text-[18px] text-gray-700"
               style={{
                 fontSize: '18px',
-                lineHeight: '1.75',
+                lineHeight: '1.6',
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word'
               }}
