@@ -5,9 +5,16 @@ interface ArticleContentProps {
   fontSize: number;
 }
 
-// Don't manipulate HTML, just return it as-is
+// Reduce paragraph spacing by manipulating the HTML directly
 function cleanHtmlContent(html: string): string {
-  return html || '';
+  if (!html) return '';
+
+  // Replace closing paragraph tags with a small line break instead of default spacing
+  let cleaned = html.replace(/<\/p>\s*<p>/gi, '<br><br>');
+  cleaned = cleaned.replace(/<p>/gi, '');
+  cleaned = cleaned.replace(/<\/p>/gi, '<br><br>');
+
+  return cleaned;
 }
 
 export function ArticleContent({ article }: ArticleContentProps) {
@@ -38,26 +45,14 @@ export function ArticleContent({ article }: ArticleContentProps) {
       </div>
 
       <div
-        className="text-[18px] text-gray-700 article-content"
+        className="text-[18px] text-gray-700"
         style={{
           fontSize: '18px',
           lineHeight: '1.6',
-          whiteSpace: 'pre-wrap',
           wordWrap: 'break-word'
         }}
         dangerouslySetInnerHTML={{ __html: cleanedContent }}
       />
-      <style>{`
-        .article-content p {
-          margin: 0;
-          margin-bottom: 0.1em;
-        }
-        .article-content br {
-          display: block;
-          content: "";
-          margin-top: 0;
-        }
-      `}</style>
     </>
   );
 }
