@@ -58,10 +58,22 @@ export function ArticleList({
 
       {/* Mobile title */}
       <div className="md:hidden px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <h2 className="text-lg font-semibold text-gray-900">{viewTitle}</h2>
-        {unreadCount > 0 && (
-          <p className="text-sm text-gray-500 mt-0.5">{unreadCount} unread</p>
-        )}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-gray-900">{viewTitle}</h2>
+            {unreadCount > 0 && (
+              <p className="text-sm text-gray-500 mt-0.5">{unreadCount} unread</p>
+            )}
+          </div>
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing || !onRefresh}
+            className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            title="Refresh feeds"
+          >
+            <RefreshCw className={`h-5 w-5 text-gray-600 transition-all ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Article list */}
