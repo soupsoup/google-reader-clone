@@ -166,6 +166,7 @@ export function AppLayout() {
             currentView={view}
             onSelectView={setView}
             onAddFeed={() => setShowAddFeed(true)}
+            onCloseSidebar={() => setSidebarCollapsed(true)}
           />
 
           <div className="flex-1 flex overflow-hidden"> {/* This div is the main content area, sibling to Sidebar */}
