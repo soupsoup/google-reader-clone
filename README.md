@@ -1,177 +1,133 @@
-# Supabase CLI
+# Foogle Reader
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+A modern, open-source RSS feed reader inspired by Google Reader. Built with React, TypeScript, and Supabase.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Features
 
-This repository contains all the functionality for Supabase CLI.
+- **Feed Management**: Subscribe to RSS/Atom feeds, organize them into folders, and manage your subscriptions
+- **Article Reading**: Clean, distraction-free reading experience with full article content
+- **Smart Organization**:
+  - View all articles from all feeds
+  - Browse by individual feed or folder
+  - Star articles for later reading
+  - Track read/unread status
+- **Full-text Search**: Search across article titles and content
+- **Customizable UI**:
+  - Three layout modes (side-by-side, top-and-bottom, modal)
+  - Adjustable font sizes
+  - Dark mode support
+  - Collapsible sidebar
+- **Keyboard Shortcuts**: Google Reader-style keyboard navigation for power users
+- **Auto-refresh**: Keep your feeds up-to-date automatically
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Tech Stack
 
-## Getting started
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS
+- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **State Management**: TanStack React Query
+- **Routing**: React Router
 
-### Install the CLI
+## Getting Started
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account (or local Supabase CLI)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/google-reader-clone.git
+cd google-reader-clone
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+Create a `.env` file in the root directory with your Supabase credentials:
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. Set up the database:
+- Run the migrations in `supabase/migrations/` to create the database schema
+- Deploy the edge function in `supabase/functions/fetch-feeds/`
+
+5. Start the development server:
+```bash
+npm run dev
+```
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `j` / `↓` | Next article |
+| `k` / `↑` | Previous article |
+| `o` / `Enter` | Open article |
+| `s` | Star/unstar article |
+| `m` | Mark as read/unread |
+| `a` | Add new feed |
+| `Shift+a` | Mark all as read |
+| `/` | Search |
+| `r` | Refresh all feeds |
+| `Esc` | Close article modal |
+| `g h` | Go home (All Items) |
+| `g a` | Go to All Items |
+| `g s` | Go to Starred |
+
+## Database Schema
+
+- **feeds**: Global feed registry (shared across users)
+- **articles**: Article content (global, linked to feeds)
+- **user_feeds**: User subscriptions with custom titles and folder organization
+- **user_articles**: User-specific article state (read/starred status)
+- **folders**: User-created feed folders
+
+## Architecture
+
+Foogle Reader uses a modern serverless architecture:
+
+- **Frontend**: React SPA with Vite for fast development and optimized builds
+- **Authentication**: Supabase Auth with email/password support
+- **Database**: PostgreSQL with Row Level Security (RLS) for data protection
+- **Feed Fetching**: Supabase Edge Functions parse RSS/Atom feeds and store articles
+- **Caching**: React Query manages server state and caching for optimal performance
+
+## Development
+
+### Run from source
 
 ```bash
-npm i supabase --save-dev
+npm run dev
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+### Build for production
 
 ```bash
-supabase bootstrap
+npm run build
 ```
 
-Or using npx:
+### Preview production build
 
 ```bash
-npx supabase bootstrap
+npm run preview
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## Contributing
 
-## Docs
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## License
 
-## Breaking changes
+This project is open source and available under the MIT License.
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## Acknowledgments
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
+Inspired by the late, great Google Reader. Built as a tribute to the best RSS reader ever made.
