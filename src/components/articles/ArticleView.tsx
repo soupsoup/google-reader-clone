@@ -33,13 +33,13 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
     : 'Unknown date';
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center md:p-4" onClick={onClose}>
       <div
-        className="bg-white rounded shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        className="bg-white md:rounded shadow-xl w-full max-w-4xl h-full md:max-h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Article header */}
-        <div className="border-b border-gray-300 bg-[#f5f5f5] px-4 py-3 flex-shrink-0 rounded-t">
+        <div className="border-b border-gray-300 bg-[#f5f5f5] px-4 py-3 flex-shrink-0 md:rounded-t">
           <div className="flex items-start gap-3">
             {/* Star button */}
             <button
@@ -128,7 +128,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose }: Ar
         </div>
 
         {/* Article content */}
-        <div className="flex-1 overflow-y-auto bg-white rounded-b">
+        <div className="flex-1 overflow-y-auto bg-white md:rounded-b">
           <div className="max-w-3xl mx-auto p-6">
             <div
               className="text-[18px] text-gray-700"
