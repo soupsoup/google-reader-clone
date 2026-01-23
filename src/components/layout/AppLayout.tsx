@@ -224,6 +224,8 @@ export function AppLayout() {
           onToggleStar={handleToggleStar}
           onToggleRead={handleToggleRead}
           onClose={handleCloseArticle}
+          onNextArticle={handleNextArticle}
+          onPrevArticle={handlePrevArticle}
           fontSize={fontSize}
         />
       )}
