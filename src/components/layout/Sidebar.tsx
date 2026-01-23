@@ -18,6 +18,7 @@ interface SidebarProps {
   currentView: ViewState;
   onSelectView: (view: ViewState) => void;
   onAddFeed: () => void;
+  onCloseSidebar?: () => void;
 }
 
 export function Sidebar({
@@ -26,6 +27,7 @@ export function Sidebar({
   currentView,
   onSelectView,
   onAddFeed,
+  onCloseSidebar,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [expandedSubscriptions, setExpandedSubscriptions] = useState(true);
@@ -75,13 +77,28 @@ export function Sidebar({
     }
   }, [moveFeedToFolder]);
 
+  const handleViewSelect = (view: ViewState) => {
+    onSelectView(view);
+    // Only close sidebar on mobile/tablet (below lg breakpoint)
+    if (onCloseSidebar && window.innerWidth < 1024) {
+      onCloseSidebar();
+    }
+  };
+
   if (collapsed) {
     return null;
   }
 
   return (
-    <aside className="w-56 border-r border-gray-300 bg-white flex-shrink-0 overflow-y-auto">
-      <nav className="py-3">
+    <>
+      {/* Mobile overlay backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        onClick={onCloseSidebar}
+      />
+
+      <aside className="fixed lg:static inset-y-0 left-0 w-56 border-r border-gray-300 bg-white flex-shrink-0 overflow-y-auto z-50">
+        <nav className="py-3">
         {/* Subscribe button */}
         <div className="px-3 mb-4">
           <button
@@ -94,7 +111,7 @@ export function Sidebar({
 
         {/* Home */}
         <button
-          onClick={() => onSelectView({ type: 'all', title: 'All items' })}
+          onClick={() => handleViewSelect({ type: 'all', title: 'All items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('all')
               ? 'bg-[#fcf1de]'
@@ -108,7 +125,7 @@ export function Sidebar({
 
         {/* All items */}
         <button
-          onClick={() => onSelectView({ type: 'all', title: 'All items' })}
+          onClick={() => handleViewSelect({ type: 'all', title: 'All items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('all')
               ? 'bg-[#fcf1de]'
@@ -124,7 +141,7 @@ export function Sidebar({
 
         {/* Starred items */}
         <button
-          onClick={() => onSelectView({ type: 'starred', title: 'Starred items' })}
+          onClick={() => handleViewSelect({ type: 'starred', title: 'Starred items' })}
           className={`w-full flex items-center gap-2 px-4 py-1.5 text-left text-[14px] ${
             isActive('starred')
               ? 'bg-[#fcf1de]'
@@ -186,7 +203,7 @@ export function Sidebar({
                         feed={feed}
                         isActive={isActive('feed', feed.id)}
                         onSelect={() =>
-                          onSelectView({
+                          handleViewSelect({
                             type: 'feed',
                             id: feed.id,
                             title: feed.custom_title || feed.title,
@@ -215,7 +232,7 @@ export function Sidebar({
                   feed={feed}
                   isActive={isActive('feed', feed.id)}
                   onSelect={() =>
-                    onSelectView({
+                    handleViewSelect({
                       type: 'feed',
                       id: feed.id,
                       title: feed.custom_title || feed.title,
@@ -290,7 +307,8 @@ export function Sidebar({
           </div>
         </>
       )}
-    </aside>
+      </aside>
+    </>
   );
 }
 
