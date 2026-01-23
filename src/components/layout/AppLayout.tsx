@@ -18,8 +18,16 @@ export function AppLayout() {
   const [showArticleAsModal, setShowArticleAsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddFeed, setShowAddFeed] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [layout, setLayout] = useState<Layout>('side-by-side');
+  // Default sidebar to collapsed on mobile, open on desktop
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 1024; // lg breakpoint
+  });
+
+  // Default to modal layout on mobile, side-by-side on desktop
+  const [layout, setLayout] = useState<Layout>(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 'modal' : 'side-by-side'; // md breakpoint
+  });
+
   const [fontSize, setFontSize] = useState(28);
   const [toast, setToast] = useState<Omit<ToastProps, 'onClose'> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
