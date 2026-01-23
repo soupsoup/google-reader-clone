@@ -230,14 +230,18 @@ export function useFeeds() {
   const refreshAllFeedsMutation = useMutation({
     mutationFn: async () => {
       const feeds = feedsQuery.data || [];
+      console.log('Refreshing feeds:', feeds.length, 'feeds');
 
       // Refresh all feeds in parallel
       const results = await Promise.allSettled(
-        feeds.map(feed =>
-          supabase.functions.invoke('fetch-feeds', {
+        feeds.map(async (feed) => {
+          console.log('Calling edge function for feed:', feed.id, feed.title);
+          const result = await supabase.functions.invoke('fetch-feeds', {
             body: { feed_id: feed.id },
-          })
-        )
+          });
+          console.log('Edge function result for', feed.title, ':', result);
+          return result;
+        })
       );
 
       // Check if any failed
@@ -245,6 +249,10 @@ export function useFeeds() {
       if (failures.length > 0) {
         console.error('Some feeds failed to refresh:', failures);
       }
+
+      // Log successful results
+      const successes = results.filter(r => r.status === 'fulfilled');
+      console.log(`Refresh complete: ${successes.length} succeeded, ${failures.length} failed`);
 
       return results;
     },
