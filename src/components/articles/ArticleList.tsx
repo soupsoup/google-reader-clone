@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { Star, RefreshCw } from 'lucide-react';
 import type { ArticleWithState } from '../../types';
@@ -22,6 +23,48 @@ export function ArticleList({
   isRefreshing = false,
 }: ArticleListProps) {
   const unreadCount = articles.filter(a => !a.is_read).length;
+
+  // Pull-to-refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const touchStartY = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+    // Only allow pull-to-refresh when scrolled to the top
+    if (scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+    if (scrollTop > 0) {
+      setPullDistance(0);
+      setIsPulling(false);
+      return;
+    }
+
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - touchStartY.current;
+
+    // Only register downward pulls when at top
+    if (distance > 0 && scrollTop === 0) {
+      e.preventDefault();
+      setIsPulling(true);
+      // Cap the distance at 80px for visual effect
+      setPullDistance(Math.min(distance * 0.5, 80));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isPulling && pullDistance > 60 && onRefresh && !isRefreshing) {
+      onRefresh();
+    }
+    setPullDistance(0);
+    setIsPulling(false);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-white md:border-r border-gray-300">
@@ -77,7 +120,36 @@ export function ArticleList({
       </div>
 
       {/* Article list */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 md:bg-white">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto bg-gray-50 md:bg-white relative"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: isPulling ? `translateY(${pullDistance}px)` : 'none',
+          transition: isPulling ? 'none' : 'transform 0.3s ease-out'
+        }}
+      >
+        {/* Pull-to-refresh indicator - Mobile only */}
+        <div
+          className="md:hidden absolute top-0 left-0 right-0 flex items-center justify-center"
+          style={{
+            height: '60px',
+            marginTop: '-60px',
+            opacity: Math.min(pullDistance / 60, 1),
+            transition: isPulling ? 'none' : 'opacity 0.3s ease-out'
+          }}
+        >
+          <RefreshCw
+            className={`h-6 w-6 text-gray-600 ${(isRefreshing || pullDistance > 60) ? 'animate-spin text-blue-600' : ''}`}
+            style={{
+              transform: `rotate(${pullDistance * 3}deg)`,
+              transition: (isRefreshing || pullDistance > 60) ? 'none' : 'transform 0.1s'
+            }}
+          />
+        </div>
+
         {articles.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 px-4 text-center">
             <p className="text-[14px]">No items to display</p>
