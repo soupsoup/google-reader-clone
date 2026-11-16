@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react';
 import type { ArticleWithState } from '../../types';
 
 interface ArticleContentProps {
@@ -17,13 +18,30 @@ function cleanHtmlContent(html: string): string {
   return cleaned;
 }
 
+// Only http(s) links from a feed become links, so a feed can't slip in a javascript: URL.
+function originalUrl(url: string | null | undefined): string | null {
+  try {
+    const parsed = new URL(url || '');
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ArticleContent({ article }: ArticleContentProps) {
   const cleanedContent = cleanHtmlContent(article.content || '');
+  const href = originalUrl(article.url);
 
   return (
     <>
       <h1 className="text-3xl font-bold mb-4 text-gray-900 leading-tight">
-        {article.title}
+        {href ? (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline" title="Open the original article (o)">
+            {article.title}
+          </a>
+        ) : (
+          article.title
+        )}
       </h1>
 
       <div className="text-sm text-gray-600 mb-6 pb-4 border-b border-gray-200">
@@ -53,6 +71,20 @@ export function ArticleContent({ article }: ArticleContentProps) {
         }}
         dangerouslySetInnerHTML={{ __html: cleanedContent }}
       />
+
+      {href && (
+        <div className="mt-8 pt-4 border-t border-gray-200">
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[14px] text-[#15c] hover:underline"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Read original article
+          </a>
+        </div>
+      )}
     </>
   );
 }
