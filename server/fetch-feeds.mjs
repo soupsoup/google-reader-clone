@@ -66,20 +66,44 @@ export async function assertPublicUrl(raw) {
   return url;
 }
 
-async function fetchFeed(start) {
+// One retry, a second apart, for failures that are usually brief: a dropped
+// connection, a timeout, a 429 or a 5xx. Bad URLs, private addresses, 4xx
+// answers and oversized feeds fail straight away.
+export async function fetchFeed(start, { attempts = 2, pauseMs = 1000 } = {}) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetchFeedOnce(start);
+    } catch (err) {
+      if (attempt >= attempts || !err.transient) throw err;
+      await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    }
+  }
+}
+
+const transient = (err) => Object.assign(err, { transient: true });
+
+async function fetchFeedOnce(start) {
   let url = start;
   for (let hop = 0; hop < 5; hop++) {
     await assertPublicUrl(url);
-    const res = await fetch(url, {
-      redirect: 'manual',
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      signal: AbortSignal.timeout(20_000),
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        redirect: 'manual',
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (err) {
+      throw transient(new Error(err?.name === 'TimeoutError' ? 'Feed took too long to answer' : `Couldn't reach the feed: ${err?.message || err}`));
+    }
     if (res.status >= 300 && res.status < 400 && res.headers.get('location')) {
       url = new URL(res.headers.get('location'), url).toString();
       continue;
     }
-    if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(`Fetch error: ${res.status}`);
+      throw res.status === 429 || res.status >= 500 ? transient(err) : err;
+    }
     const text = await res.text();
     if (text.length > MAX_BYTES) throw new Error('Feed is too large');
     return { xml: text, finalUrl: url };
