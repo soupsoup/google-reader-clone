@@ -1,0 +1,23 @@
+[Unit]
+Description=Foogle Reader feed fetcher (was a Supabase Edge Function)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=foogle
+Group=foogle
+WorkingDirectory=/var/www/foogle
+EnvironmentFile=/etc/foogle.env
+Environment=HOST=127.0.0.1
+Environment=PORT=4417
+ExecStart=/usr/bin/node server/fetch-feeds.mjs
+Restart=on-failure
+RestartSec=3
+MemoryMax=200M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+[Unit]
+Description=Supabase Auth (GoTrue) for Foogle Reader on 127.0.0.1:54371
+After=network-online.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=gotrue
+Group=gotrue
+EnvironmentFile=/etc/foogle-auth.env
+WorkingDirectory=/opt/supabase-auth/current
+ExecStart=/opt/supabase-auth/current/auth
+Restart=always
+RestartSec=3
+MemoryMax=200M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

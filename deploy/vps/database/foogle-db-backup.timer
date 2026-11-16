@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up Foogle Reader's database nightly
+
+[Timer]
+OnCalendar=*-*-* 04:20
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
