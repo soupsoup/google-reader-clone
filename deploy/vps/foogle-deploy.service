@@ -1,0 +1,17 @@
+[Unit]
+Description=Deploy the newest foogle commit if main changed
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=foogle
+Group=foogle
+WorkingDirectory=/var/www/foogle
+# VITE_SUPABASE_* are compiled into the client bundle at build time.
+EnvironmentFile=/etc/foogle.env
+Environment=NODE_OPTIONS=--max-old-space-size=1024
+ExecStart=/var/www/foogle/deploy/vps/deploy.sh
+Nice=10
+CPUWeight=20
+IOSchedulingClass=idle
+TimeoutStartSec=15min
