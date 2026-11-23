@@ -214,6 +214,7 @@ export function Sidebar({
                           setContextMenu({ feedId: feed.id, x: e.clientX, y: e.clientY });
                         }}
                         onDragStart={handleDragStart}
+                        onDelete={() => removeFeed(feed.id)}
                       />
                     ))}
                   </div>
@@ -243,6 +244,7 @@ export function Sidebar({
                     setContextMenu({ feedId: feed.id, x: e.clientX, y: e.clientY });
                   }}
                   onDragStart={handleDragStart}
+                  onDelete={() => removeFeed(feed.id)}
                 />
               ))}
             </div>
@@ -318,32 +320,47 @@ interface FeedItemProps {
   onSelect: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onDragStart: (e: React.DragEvent, feedId: string) => void;
+  onDelete: () => void;
 }
 
-function FeedItem({ feed, isActive, onSelect, onContextMenu, onDragStart }: FeedItemProps) {
+function FeedItem({ feed, isActive, onSelect, onContextMenu, onDragStart, onDelete }: FeedItemProps) {
   return (
-    <button
-      draggable="true"
-      onDragStart={(e) => onDragStart(e, feed.id)}
-      onClick={onSelect}
-      onContextMenu={onContextMenu}
-      className={`w-full flex items-center gap-2 px-3 py-1 text-left text-[14px] ${
+    <div
+      className={`w-full flex items-center gap-2 px-3 py-1 text-left text-[14px] group ${
         isActive
           ? 'bg-[#fcf1de]'
           : 'hover:bg-[#f1f1f1]'
       }`}
     >
-      {feed.favicon_url ? (
-        <img src={feed.favicon_url} alt="" className="h-4 w-4 flex-shrink-0" />
-      ) : (
-        <div className="h-4 w-4 bg-[#77a] rounded-sm flex-shrink-0" />
-      )}
-      <span className="text-[#15c] flex-1 truncate">
-        {feed.custom_title || feed.title}
-      </span>
-      {feed.unread_count > 0 && (
-        <span className="text-gray-600">({feed.unread_count})</span>
-      )}
-    </button>
+      <button
+        draggable="true"
+        onDragStart={(e) => onDragStart(e, feed.id)}
+        onClick={onSelect}
+        onContextMenu={onContextMenu}
+        className="flex items-center gap-2 flex-1 min-w-0"
+      >
+        {feed.favicon_url ? (
+          <img src={feed.favicon_url} alt="" className="h-4 w-4 flex-shrink-0" />
+        ) : (
+          <div className="h-4 w-4 bg-[#77a] rounded-sm flex-shrink-0" />
+        )}
+        <span className="text-[#15c] flex-1 truncate">
+          {feed.custom_title || feed.title}
+        </span>
+        {feed.unread_count > 0 && (
+          <span className="text-gray-600">({feed.unread_count})</span>
+        )}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="flex-shrink-0 p-1 opacity-0 group-hover:opacity-100 lg:opacity-100 hover:bg-red-100 rounded transition-opacity"
+        title="Unsubscribe"
+      >
+        <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-600" />
+      </button>
+    </div>
   );
 }
