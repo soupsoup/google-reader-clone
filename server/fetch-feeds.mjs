@@ -35,6 +35,8 @@ export function verifyJwt(token, secret = FOOGLE_JWT_SECRET) {
     header = JSON.parse(Buffer.from(h, 'base64url').toString());
     payload = JSON.parse(Buffer.from(p, 'base64url').toString());
   } catch { return null; }
+  // JSON.parse happily returns null, numbers or strings; only an object is a real header or payload.
+  if (!header || typeof header !== 'object' || !payload || typeof payload !== 'object') return null;
   if (header.alg !== 'HS256') return null;
   const want = createHmac('sha256', secret).update(`${h}.${p}`).digest();
   const got = Buffer.from(sig, 'base64url');
@@ -50,8 +52,18 @@ function isPrivate(ip) {
     return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
       (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a >= 224;
   }
-  const v = ip.toLowerCase();
-  if (v.startsWith('::ffff:')) return isPrivate(v.slice(7));
+  let v = ip.toLowerCase();
+  // Canonical form first, so 0:0:0:0:0:ffff:7f00:1 and ::ffff:7f00:1 look the same.
+  try { v = new URL(`http://[${v}]/`).hostname.slice(1, -1); } catch { return true; }
+  if (v.startsWith('::ffff:')) {
+    // IPv4-mapped: the URL parser writes ::ffff:127.0.0.1 as ::ffff:7f00:1, so decode the hex back to IPv4.
+    const rest = v.slice(7);
+    if (net.isIPv4(rest)) return isPrivate(rest);
+    const m = rest.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (!m) return true;
+    const [hi, lo] = [parseInt(m[1], 16), parseInt(m[2], 16)];
+    return isPrivate(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
+  }
   return v === '::' || v === '::1' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe8') || v.startsWith('fe9') ||
     v.startsWith('fea') || v.startsWith('feb') || v.startsWith('ff');
 }
@@ -207,7 +219,8 @@ function send(res, status, body) {
 export const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(200, corsHeaders); return res.end('ok'); }
   if (req.method !== 'POST' || !/^\/(functions\/v1\/)?fetch-feeds\/?$/.test(req.url.split('?')[0])) return send(res, 404, { error: 'Not found' });
-  const claims = verifyJwt((req.headers.authorization || '').replace(/^Bearer\s+/i, ''));
+  let claims = null;
+  try { claims = verifyJwt((req.headers.authorization || '').replace(/^Bearer\s+/i, '')); } catch { claims = null; }
   if (!claims || !['authenticated', 'service_role'].includes(claims.role)) return send(res, 401, { error: 'Sign in first' });
   let raw = '';
   for await (const chunk of req) { raw += chunk; if (raw.length > 100_000) return send(res, 413, { error: 'Request too large' }); }
