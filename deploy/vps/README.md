@@ -7,7 +7,7 @@ Everything runs on the VPS at https://foogle.antderosa.com:
 | Vercel (the React app) | nginx serves the Vite build from `/var/www/foogle/.releases/current`; a timer rebuilds when `main` changes |
 | Supabase Postgres + row-level security | PostgreSQL 17, database `foogle`, same policies, grants and functions |
 | Supabase REST (`/rest/v1`) | PostgREST v13 on 127.0.0.1:54372 |
-| Supabase Auth (`/auth/v1`) | Supabase Auth (GoTrue) on 127.0.0.1:54371; sign-ups off, existing accounts and passwords kept |
+| Supabase Auth (`/auth/v1`) | Supabase Auth (GoTrue) on 127.0.0.1:54371; existing accounts and passwords kept; sign-ups and password resets once email is set up (below) |
 | Edge Function `fetch-feeds` (`/functions/v1`) | `server/fetch-feeds.mjs` as `foogle.service` on 127.0.0.1:4417 |
 
 The browser talks only to foogle.antderosa.com. Everyone signs in once after the move.
@@ -51,6 +51,33 @@ systemctl restart foogle; systemctl is-active foogle foogle-auth foogle-postgres
 ```
 
 Open https://foogle.antderosa.com, sign in, refresh a feed, add one.
+
+## Sign-ups and password resets
+
+Both need email: new accounts confirm their address by email, and a reset sends a link.
+Without email settings, sign-ups stay off and resets can't be sent.
+
+1. Add the mail account to `/etc/foogle.env` (root only, never commit it):
+
+   ```sh
+   SMTP_HOST=smtp.hostinger.com
+   SMTP_PORT=465
+   SMTP_USER=reader@antderosa.com
+   SMTP_PASSWORD=...
+   SMTP_FROM=reader@antderosa.com   # optional, defaults to SMTP_USER
+   # FOOGLE_SIGNUPS=off             # optional: resets only, no new accounts
+   ```
+
+2. Rewrite the auth settings and restart it:
+
+   ```sh
+   bash /var/www/foogle/deploy/vps/database/setup.sh
+   systemctl restart foogle-auth
+   ```
+
+3. Check it: on https://foogle.antderosa.com/auth, use "Forgot password?" with your own
+   address and follow the link to `/reset-password`. Then create a test account and
+   confirm it from the email. `journalctl -u foogle-auth -n 50` shows mail errors.
 
 ## Day to day
 

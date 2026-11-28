@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { AuthPage } from './pages/AuthPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AppLayout } from './components/layout/AppLayout';
 import { useEffect } from 'react';
 
@@ -50,6 +51,14 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// A reset link that lands anywhere else still goes to the new-password form.
+function RecoveryRedirect() {
+  const { recovering } = useAuth();
+  const { pathname } = useLocation();
+  if (recovering && pathname !== '/reset-password') return <Navigate to="/reset-password" replace />;
+  return null;
+}
+
 function ThemeInitializer() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -71,7 +80,9 @@ function App() {
       <AuthProvider>
         <ThemeInitializer />
         <BrowserRouter>
+          <RecoveryRedirect />
           <Routes>
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/auth"
               element={
