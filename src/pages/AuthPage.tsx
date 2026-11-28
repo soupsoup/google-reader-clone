@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { Rss, Mail, Lock, Loader2 } from 'lucide-react';
 
 export function AuthPage() {
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(searchParams.get('mode') === 'signup' ? 'signup' : 'login');
   const isLogin = mode === 'login';
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -49,10 +50,10 @@ export function AuthPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+          <Link to="/" className="flex items-center gap-2 text-blue-600 dark:text-blue-400" title="Back to the home page">
             <Rss className="h-10 w-10" />
             <span className="text-3xl font-bold">Reader</span>
-          </div>
+          </Link>
         </div>
         <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900 dark:text-white">
           {mode === 'forgot' ? 'Reset your password' : isLogin ? 'Sign in to your account' : 'Create a new account'}
