@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import type { RefObject } from 'react';
-import { BarChart3, Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, Menu } from 'lucide-react';
+import { BarChart3, CalendarX2, Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../lib/supabase';
 import type { Layout } from '../../types';
+import { retentionDays, retentionLabel } from '../../lib/retention';
+import { OldItemsDialog } from './OldItemsDialog';
 
 interface HeaderProps {
   searchQuery: string;
@@ -43,6 +45,7 @@ export function Header({
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showOldItems, setShowOldItems] = useState(false);
 
   return (
     <header className="bg-white border-b border-gray-300 flex-shrink-0">
@@ -156,6 +159,19 @@ export function Header({
                     <Keyboard className="h-4 w-4" />
                     Keyboard shortcuts
                   </button>
+                  <button
+                    onClick={() => {
+                      setShowOldItems(true);
+                      setShowSettings(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-[14px] text-gray-700 hover:bg-gray-100 flex items-start gap-2"
+                  >
+                    <CalendarX2 className="h-4 w-4 mt-0.5" />
+                    <span>
+                      Remove old items
+                      <span className="block text-[12px] text-gray-500">{retentionLabel(retentionDays(user))}</span>
+                    </span>
+                  </button>
                   {isAdmin && (
                     <Link
                       to="/stats"
@@ -185,6 +201,8 @@ export function Header({
       <div className="h-10 flex items-center px-4 border-t border-gray-200 bg-[#f5f5f5]">
         <span className="text-xl text-[#dd4b39] font-normal">Reader</span>
       </div>
+
+      {showOldItems && <OldItemsDialog onClose={() => setShowOldItems(false)} />}
 
       {showShortcuts && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowShortcuts(false)}>
