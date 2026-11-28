@@ -1,6 +1,6 @@
 # Foogle Reader on the VPS (off Vercel and Supabase)
 
-Everything runs on the VPS at https://foogle.antderosa.com:
+Everything runs on the VPS at https://reader.antderosa.com (https://foogle.antderosa.com, the first address, redirects there):
 
 | Was | On the VPS |
 |---|---|
@@ -10,7 +10,7 @@ Everything runs on the VPS at https://foogle.antderosa.com:
 | Supabase Auth (`/auth/v1`) | Supabase Auth (GoTrue) on 127.0.0.1:54371; existing accounts and passwords kept; sign-ups and password resets once email is set up (below) |
 | Edge Function `fetch-feeds` (`/functions/v1`) | `server/fetch-feeds.mjs` as `foogle.service` on 127.0.0.1:4417 |
 
-The browser talks only to foogle.antderosa.com. Everyone signs in once after the move.
+The browser talks only to reader.antderosa.com, and the app calls its own address for the API, so no domain is compiled into the build. Everyone signs in once after the move.
 
 The feed fetcher now needs a signed-in user (Supabase's gateway let anyone
 with the public key call it), subscribes only the signed-in user, and won't
@@ -27,7 +27,7 @@ id foogle >/dev/null 2>&1 || useradd --system --create-home --home-dir /var/lib/
 install -d -o foogle -g foogle /var/www/foogle
 sudo -u foogle git clone -q https://github.com/soupsoup/google-reader-clone.git /var/www/foogle
 bash /var/www/foogle/deploy/vps/install.sh
-certbot --nginx -d foogle.antderosa.com
+certbot --nginx -d reader.antderosa.com -d foogle.antderosa.com
 ```
 
 ## 2. Database stack
@@ -50,7 +50,7 @@ systemctl start foogle-deploy && systemctl enable --now foogle-deploy.timer foog
 systemctl restart foogle; systemctl is-active foogle foogle-auth foogle-postgrest
 ```
 
-Open https://foogle.antderosa.com, sign in, refresh a feed, add one.
+Open https://reader.antderosa.com, sign in, refresh a feed, add one.
 
 ## Sign-ups and password resets
 
@@ -75,9 +75,21 @@ Without email settings, sign-ups stay off and resets can't be sent.
    systemctl restart foogle-auth
    ```
 
-3. Check it: on https://foogle.antderosa.com/auth, use "Forgot password?" with your own
+3. Check it: on https://reader.antderosa.com/auth, use "Forgot password?" with your own
    address and follow the link to `/reset-password`. Then create a test account and
    confirm it from the email. `journalctl -u foogle-auth -n 50` shows mail errors.
+
+## Moving from foogle.antderosa.com to reader.antderosa.com (one time)
+
+1. Add a DNS record for `reader.antderosa.com` with the same target as `foogle.antderosa.com`.
+2. Once it resolves, run `bash /var/www/foogle/deploy/vps/move-to-reader-domain.sh` as root.
+   It checks DNS, installs the nginx config (reader serves the app, foogle redirects),
+   adds HTTPS for both names, points the sign-in service at the new address and rebuilds.
+3. Sign in again at https://reader.antderosa.com.
+
+To use another address later, set `FOOGLE_SITE` in `/etc/foogle.env`, update
+`server_name` in the nginx site, rerun `database/setup.sh` and restart `foogle-auth`.
+No rebuild is needed.
 
 ## Day to day
 

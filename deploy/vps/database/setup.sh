@@ -6,7 +6,7 @@
 #   PostgreSQL 17 (already installed)  database `foogle` (created by migrate.sh)
 #   Supabase Auth (GoTrue)  127.0.0.1:54371  sign-in (sign-ups off: a personal reader)
 #   PostgREST v13           127.0.0.1:54372  the same /rest/v1 API, same RLS
-#   nginx                   /auth/v1, /rest/v1 and /functions/v1 on foogle.antderosa.com
+#   nginx                   /auth/v1, /rest/v1 and /functions/v1 on the site (FOOGLE_SITE)
 #                           (deploy/vps/nginx.conf); 127.0.0.1:54370 for the feed fetcher
 set -euo pipefail
 
@@ -14,7 +14,6 @@ AUTH_VERSION="${AUTH_VERSION:-v2.197.0}"
 POSTGREST_VERSION="${POSTGREST_VERSION:-v13.0.6}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SECRETS=/etc/foogle-db                 # root only
-site=https://foogle.antderosa.com
 as_pg() { sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -At "$@"; }
 secret() { [ -f "$SECRETS/$1" ] || (umask 077; openssl rand -hex 24 > "$SECRETS/$1"); cat "$SECRETS/$1"; }
 
@@ -22,6 +21,10 @@ pg_lsclusters | grep -qE '^17 +main .* online' || { echo "PostgreSQL 17 isn't ru
 ENV=/etc/foogle.env
 [ -f "$ENV" ] || { echo "$ENV is missing; run deploy/vps/install.sh first."; exit 1; }
 envval() { grep -E "^$1=" "$ENV" | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'; }
+# The address people use. FOOGLE_SITE in $ENV overrides it. Earlier addresses stay valid
+# for links already sent by email (password resets, confirmations).
+site=$(envval FOOGLE_SITE || true); site=${site:-https://reader.antderosa.com}
+old_sites="https://foogle.antderosa.com"
 # SMTP_* in $ENV turn on email: sign-up confirmations and password resets. Without
 # them sign-ups stay off (nobody could confirm an account) and resets can't be sent.
 # FOOGLE_SIGNUPS=off in $ENV keeps sign-ups off even with SMTP set (resets still work).
@@ -62,7 +65,7 @@ mint() {
 [ -f "$SECRETS/service.key" ] || (umask 077; mint service_role > "$SECRETS/service.key")
 # The app reads VITE_* at build time; the feed fetcher reads the rest.
 setenv() { if grep -qE "^$1=" "$ENV"; then sed -i "s|^$1=.*|$1=$2|" "$ENV"; else echo "$1=$2" >> "$ENV"; fi; }
-setenv VITE_SUPABASE_URL "$site"
+setenv VITE_SUPABASE_URL same-origin
 setenv VITE_SUPABASE_ANON_KEY "$(cat "$SECRETS/anon.key")"
 setenv SUPABASE_URL "http://127.0.0.1:54370"
 setenv SUPABASE_SERVICE_ROLE_KEY "$(cat "$SECRETS/service.key")"
@@ -89,7 +92,7 @@ GOTRUE_DB_DRIVER=postgres
 DATABASE_URL=postgres://foogle_auth:$auth_pw@127.0.0.1:5432/foogle?search_path=auth
 GOTRUE_DB_MIGRATIONS_PATH=/opt/supabase-auth/current/migrations
 GOTRUE_SITE_URL=$site
-GOTRUE_URI_ALLOW_LIST=$site,$site/**
+GOTRUE_URI_ALLOW_LIST=$site,$site/**,$old_sites,$old_sites/**
 # false only when SMTP_* is set in /etc/foogle.env (see the top of this script).
 GOTRUE_DISABLE_SIGNUP=$disable_signup
 GOTRUE_JWT_SECRET=$(cat "$SECRETS/jwt.secret")
