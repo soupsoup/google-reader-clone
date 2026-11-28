@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import type { ArticleWithState, ViewType } from '../types';
+import { retentionCutoff, retentionDays, retentionFilter } from '../lib/retention';
 
 interface UseArticlesOptions {
   viewType: ViewType;
@@ -12,9 +13,11 @@ interface UseArticlesOptions {
 export function useArticles({ viewType, viewId, searchQuery }: UseArticlesOptions) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  // Starred items ignore the "remove old items" setting.
+  const cutoff = viewType === 'starred' ? null : retentionCutoff(retentionDays(user));
 
   const articlesQuery = useQuery({
-    queryKey: ['articles', user?.id, viewType, viewId, searchQuery],
+    queryKey: ['articles', user?.id, viewType, viewId, searchQuery, cutoff],
     queryFn: async () => {
       if (!user) return [];
 
@@ -53,9 +56,14 @@ export function useArticles({ viewType, viewId, searchQuery }: UseArticlesOption
         query = query.in('feed_id', feedIds);
       }
 
-      // Apply search filter
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
+      // Apply search filter and the "remove old items" cutoff
+      const search = searchQuery ? `title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%` : null;
+      if (search && cutoff) {
+        query = query.or(`and(or(${search}),or(${retentionFilter(cutoff)}))`);
+      } else if (search) {
+        query = query.or(search);
+      } else if (cutoff) {
+        query = query.or(retentionFilter(cutoff));
       }
 
       const { data: articles, error } = await query;

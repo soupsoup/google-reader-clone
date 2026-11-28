@@ -2,13 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import type { Feed, Folder, FeedWithUnread, FolderWithFeeds } from '../types';
+import { retentionCutoff, retentionDays, retentionFilter } from '../lib/retention';
 
 export function useFeeds() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  // Unread counts leave out stories hidden by the "remove old items" setting.
+  const cutoff = retentionCutoff(retentionDays(user));
 
   const feedsQuery = useQuery({
-    queryKey: ['feeds', user?.id],
+    queryKey: ['feeds', user?.id, cutoff],
     queryFn: async () => {
       if (!user) return [];
 
@@ -31,10 +34,12 @@ export function useFeeds() {
           const feed = uf.feed as unknown as Feed;
 
           // Get all articles and read articles
-          const { data: articles } = await supabase
+          let articleQuery = supabase
             .from('articles')
             .select('id')
             .eq('feed_id', feed.id);
+          if (cutoff) articleQuery = articleQuery.or(retentionFilter(cutoff));
+          const { data: articles } = await articleQuery;
 
           const { data: readArticles } = await supabase
             .from('user_articles')
