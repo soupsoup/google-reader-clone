@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './lib/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { LandingPage } from './pages/LandingPage';
+import { StatsPage } from './pages/StatsPage';
 import { AppLayout } from './components/layout/AppLayout';
 import { useEffect } from 'react';
 
@@ -15,6 +16,13 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Pages that need a signed-in user; signed-out visitors go to sign-in.
+function RequireUser({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <>{children}</> : <Navigate to="/auth" replace />;
+}
 
 // Signed in: the reader. Signed out: the splash page instead of jumping straight to sign-in.
 function HomeRoute({ children }: { children: React.ReactNode }) {
@@ -81,6 +89,7 @@ function App() {
           <RecoveryRedirect />
           <Routes>
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/stats" element={<RequireUser><StatsPage /></RequireUser>} />
             <Route
               path="/auth"
               element={
