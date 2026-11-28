@@ -1,5 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 import type { ArticleWithState } from '../../types';
+import { originalUrl } from '../../lib/share';
+import { ShareButtons } from './ShareButtons';
 
 interface ArticleContentProps {
   article: ArticleWithState;
@@ -16,16 +18,6 @@ function cleanHtmlContent(html: string): string {
   cleaned = cleaned.replace(/<\/p>/gi, '<br><br>');
 
   return cleaned;
-}
-
-// Only http(s) links from a feed become links, so a feed can't slip in a javascript: URL.
-function originalUrl(url: string | null | undefined): string | null {
-  try {
-    const parsed = new URL(url || '');
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null;
-  } catch {
-    return null;
-  }
 }
 
 export function ArticleContent({ article }: ArticleContentProps) {
@@ -60,6 +52,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
           hour: '2-digit',
           minute: '2-digit'
         })}</span>
+        <ShareButtons title={article.title} url={article.url} className="mt-2" />
       </div>
 
       <div
@@ -83,6 +76,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
             <ExternalLink className="h-4 w-4" />
             Read original article
           </a>
+          <ShareButtons title={article.title} url={article.url} className="mt-3" />
         </div>
       )}
     </>

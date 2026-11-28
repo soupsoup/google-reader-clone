@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { Star, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShareButtons } from './ShareButtons';
 import type { ArticleWithState } from '../../types';
 
 // Reduce paragraph spacing by manipulating the HTML directly
@@ -187,6 +188,8 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, onNe
                 <ExternalLink className="h-3.5 w-3.5" />
                 Open
               </a>
+              <span className="text-gray-400">|</span>
+              <ShareButtons title={article.title} url={article.url} />
             </div>
 
             {/* Close button - mobile and desktop */}
@@ -226,6 +229,7 @@ export function ArticleView({ article, onToggleStar, onToggleRead, onClose, onNe
                 <ExternalLink className="h-4 w-4" />
                 Read original article
               </a>
+              <ShareButtons title={article.title} url={article.url} className="mt-3" />
             </div>
           </div>
         </div>
