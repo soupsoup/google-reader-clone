@@ -22,7 +22,14 @@ pg_lsclusters | grep -qE '^17 +main .* online' || { echo "PostgreSQL 17 isn't ru
 ENV=/etc/foogle.env
 [ -f "$ENV" ] || { echo "$ENV is missing; run deploy/vps/install.sh first."; exit 1; }
 envval() { grep -E "^$1=" "$ENV" | tail -1 | cut -d= -f2- | sed -E 's/^"(.*)"$/\1/'; }
-# SMTP_* in $ENV are optional: the app sends no email (no sign-up, no reset).
+# SMTP_* in $ENV turn on email: sign-up confirmations and password resets. Without
+# them sign-ups stay off (nobody could confirm an account) and resets can't be sent.
+# FOOGLE_SIGNUPS=off in $ENV keeps sign-ups off even with SMTP set (resets still work).
+if [ -n "$(envval SMTP_HOST || true)" ] && [ "$(envval FOOGLE_SIGNUPS || true)" != "off" ]; then
+  disable_signup=false
+else
+  disable_signup=true
+fi
 
 echo "Roles ..."
 install -d -m 700 "$SECRETS"
@@ -83,8 +90,8 @@ DATABASE_URL=postgres://foogle_auth:$auth_pw@127.0.0.1:5432/foogle?search_path=a
 GOTRUE_DB_MIGRATIONS_PATH=/opt/supabase-auth/current/migrations
 GOTRUE_SITE_URL=$site
 GOTRUE_URI_ALLOW_LIST=$site,$site/**
-# Existing accounts only. Set false (and fill SMTP_*) to let people sign up.
-GOTRUE_DISABLE_SIGNUP=true
+# false only when SMTP_* is set in /etc/foogle.env (see the top of this script).
+GOTRUE_DISABLE_SIGNUP=$disable_signup
 GOTRUE_JWT_SECRET=$(cat "$SECRETS/jwt.secret")
 GOTRUE_JWT_EXP=3600
 GOTRUE_JWT_AUD=authenticated
@@ -101,12 +108,14 @@ GOTRUE_RATE_LIMIT_HEADER=X-Forwarded-For
 GOTRUE_LOG_LEVEL=info
 CONF
 if [ -n "$(envval SMTP_HOST)" ]; then
+  smtp_from=$(envval SMTP_FROM || true)
+  [ -n "$smtp_from" ] || smtp_from=$(envval SMTP_USER)
   cat >> /etc/foogle-auth.env <<CONF
 GOTRUE_SMTP_HOST=$(envval SMTP_HOST)
 GOTRUE_SMTP_PORT=$(envval SMTP_PORT)
 GOTRUE_SMTP_USER=$(envval SMTP_USER)
 GOTRUE_SMTP_PASS=$(envval SMTP_PASSWORD)
-GOTRUE_SMTP_ADMIN_EMAIL=$(envval SMTP_USER)
+GOTRUE_SMTP_ADMIN_EMAIL=$smtp_from
 GOTRUE_SMTP_SENDER_NAME=Foogle Reader
 CONF
 fi

@@ -4,28 +4,39 @@ import { useAuth } from '../lib/AuthContext';
 import { Rss, Mail, Lock, Loader2 } from 'lucide-react';
 
 export function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const isLogin = mode === 'login';
+  const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, sendPasswordReset } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
     setLoading(true);
 
     try {
-      const { error } = isLogin
-        ? await signIn(email, password)
-        : await signUp(email, password);
-
-      if (error) {
-        setError(error.message);
+      if (mode === 'forgot') {
+        const { error } = await sendPasswordReset(email);
+        if (error) setError(error.message);
+        else setNotice('If an account exists for that address, a link to reset your password is on its way. Check your email.');
+      } else if (mode === 'signup') {
+        const { error, needsConfirmation } = await signUp(email, password);
+        if (error) setError(error.message);
+        else if (needsConfirmation) {
+          setNotice('Check your email and click the link to confirm your account, then sign in.');
+          setMode('login');
+          setPassword('');
+        } else navigate('/');
       } else {
-        navigate('/');
+        const { error } = await signIn(email, password);
+        if (error) setError(error.message);
+        else navigate('/');
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -44,13 +55,19 @@ export function AuthPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900 dark:text-white">
-          {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          {mode === 'forgot' ? 'Reset your password' : isLogin ? 'Sign in to your account' : 'Create a new account'}
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {notice && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-md text-sm">
+                {notice}
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm">
                 {error}
@@ -79,6 +96,7 @@ export function AuthPage() {
               </div>
             </div>
 
+            {mode !== 'forgot' && (
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password
@@ -100,7 +118,17 @@ export function AuthPage() {
                   minLength={6}
                 />
               </div>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(null); setNotice(null); }}
+                  className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              )}
             </div>
+            )}
 
             <div>
               <button
@@ -110,6 +138,8 @@ export function AuthPage() {
               >
                 {loading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
+                ) : mode === 'forgot' ? (
+                  'Send reset link'
                 ) : isLogin ? (
                   'Sign in'
                 ) : (
@@ -126,7 +156,7 @@ export function AuthPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                  {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                  {isLogin ? "Don't have an account?" : mode === 'forgot' ? 'Remembered it?' : 'Already have an account?'}
                 </span>
               </div>
             </div>
@@ -135,8 +165,9 @@ export function AuthPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setIsLogin(!isLogin);
+                  setMode(isLogin ? 'signup' : 'login');
                   setError(null);
+                  setNotice(null);
                 }}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
