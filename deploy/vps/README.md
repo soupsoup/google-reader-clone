@@ -91,6 +91,22 @@ To use another address later, set `FOOGLE_SITE` in `/etc/foogle.env`, update
 `server_name` in the nginx site, rerun `database/setup.sh` and restart `foogle-auth`.
 No rebuild is needed.
 
+## Usage stats (owner only)
+
+`/stats` shows totals: accounts and sign-ups per week, active readers, subscriptions per
+account, the most subscribed feeds and sites, the most read feeds, the newest feeds added,
+and stories read and starred. It never shows emails or what any one person reads. The
+numbers come from `public.admin_stats()` (supabase/migrations/002_admin_stats.sql), which
+refuses anyone not listed in `public.app_admins`.
+
+Turn it on once, with the email of your Foogle account:
+
+```sh
+bash /var/www/foogle/deploy/vps/database/enable-stats.sh you@example.com
+```
+
+Then "Usage stats" appears in the gear menu for that account only.
+
 ## Day to day
 
 - Logs: `journalctl -u foogle` (feed fetcher), `journalctl -u foogle-auth`.

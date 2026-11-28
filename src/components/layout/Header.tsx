@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { RefObject } from 'react';
-import { Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, Menu } from 'lucide-react';
+import { BarChart3, Search, Settings, LogOut, Keyboard, Columns, Rows, PanelRight, Minus, Plus, Menu } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../lib/AuthContext';
+import { supabase } from '../../lib/supabase';
 import type { Layout } from '../../types';
 
 interface HeaderProps {
@@ -27,6 +30,17 @@ export function Header({
   onFontSizeChange,
 }: HeaderProps) {
   const { signOut, user } = useAuth();
+  // Only the site owner sees the Stats link (the database decides; false if the check fails).
+  const { data: isAdmin } = useQuery({
+    queryKey: ['is-app-admin', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_app_admin');
+      return !error && data === true;
+    },
+    enabled: !!user,
+    staleTime: Infinity,
+    retry: false,
+  });
   const [showSettings, setShowSettings] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
@@ -142,6 +156,16 @@ export function Header({
                     <Keyboard className="h-4 w-4" />
                     Keyboard shortcuts
                   </button>
+                  {isAdmin && (
+                    <Link
+                      to="/stats"
+                      onClick={() => setShowSettings(false)}
+                      className="w-full px-4 py-2 text-left text-[14px] text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      Usage stats
+                    </Link>
+                  )}
                   <hr className="my-1 border-gray-200" />
                   <button
                     onClick={signOut}
